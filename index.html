@@ -493,7 +493,7 @@
     <video id="song-audio" src="song.mp4" style="display:none" playsinline muted></video>
     <audio id="melody-audio" src="melody.mp3" preload="none"></audio>
     <div id="speed-bar">
-        <button id="play-pause" class="speed-step-btn">⏸</button>
+        <button id="play-pause" class="speed-step-btn">▶</button>
         <button id="speed-minus" class="speed-step-btn">－</button>
         <button id="speed-reset" class="is-normal">מהירות</button>
         <button id="speed-plus" class="speed-step-btn">＋</button>
@@ -580,6 +580,10 @@
         startScreen.style.display = 'none';
         showPracticeHint();
         player.playVideo();
+        // Nothing is playing until this first tap, so the button starts as ▶
+        // and only here does it become a real pause control.
+        playPauseBtn.textContent = '⏸';
+        isPaused = false;
     });
 
     // Speed stepper: minus/plus move between steps. 0.7x (30% slower) is
