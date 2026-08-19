@@ -48,7 +48,7 @@
             align-items: center;
             gap: 5px;
             text-decoration: none;
-            touch-action: auto;
+            touch-action: manipulation;
         }
 
         /* "אני רוצה לנסות לבד" — an alternate, self-paced view: instead of
@@ -57,7 +57,7 @@
            real pitch height, and the child works through them at their own
            pace with no clock pushing them forward. */
         #solo-btn {
-            touch-action: auto;
+            touch-action: manipulation;
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 20px;
             padding: 9px 20px;
@@ -77,7 +77,7 @@
            never layered under the child's own playing — so the piano goes
            inert for that moment instead of inviting a confusing double-take. */
         #melody-btn {
-            touch-action: auto;
+            touch-action: manipulation;
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 20px;
             padding: 9px 20px;
@@ -153,10 +153,10 @@
             gap: 10px;
             padding: 10px 0;
             background: #1a1a1a;
-            touch-action: auto;
+            touch-action: manipulation;
         }
         .speed-step-btn {
-            touch-action: auto;
+            touch-action: manipulation;
             border: none;
             border-radius: 50%;
             width: 40px;
@@ -174,7 +174,7 @@
             font-size: 26px;
         }
         #speed-reset {
-            touch-action: auto;
+            touch-action: manipulation;
             border: none;
             border-radius: 8px;
             padding: 8px 18px;
@@ -405,12 +405,12 @@
             border-radius: 10px;
             padding: 8px;
             max-width: 220px;
-            touch-action: auto;
+            touch-action: manipulation;
             font-family: Arial, sans-serif;
             color: #fff;
         }
         #calib-panel button {
-            touch-action: auto;
+            touch-action: manipulation;
             border: none;
             border-radius: 6px;
             padding: 8px 12px;
@@ -423,7 +423,7 @@
         #calib-clear { background: #555; color: #fff; }
         #calib-copy { background: #4caf50; color: #fff; }
         #calib-list {
-            touch-action: auto;
+            touch-action: manipulation;
             max-height: 110px;
             overflow-y: auto;
             font-size: 12px;
@@ -436,7 +436,7 @@
         }
         #calib-copy-box {
             display: none;
-            touch-action: auto;
+            touch-action: manipulation;
             width: 100%;
             box-sizing: border-box;
             margin-top: 6px;
@@ -536,6 +536,18 @@
 </div>
 
 <script>
+    // iOS Safari ignores user-scalable=no, so a stray pinch — or a quick
+    // double-tap near the top-bar buttons — zoomed the page in with no way
+    // back that a 4-8 year old would find. This is a fixed, full-screen
+    // instrument; nothing here is meant to be zoomed or panned, so the
+    // zoom gestures are refused outright.
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(evt => {
+        document.addEventListener(evt, e => e.preventDefault(), { passive: false });
+    });
+    document.addEventListener('touchmove', e => {
+        if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+
     const startScreen = document.getElementById('start-screen');
     const pianoElement = document.getElementById('piano');
     const pianoContainer = document.getElementById('piano-container');
