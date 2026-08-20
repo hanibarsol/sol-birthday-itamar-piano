@@ -522,6 +522,7 @@
         #dbg-big { display: block; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; }
         #dbg-verdict { display: block; font-size: 19px; font-weight: bold; direction: rtl; text-align: right; padding: 2px 0; }
         #dbg-verdict.bad { color: #b00020; }
+        #dbg-trigger { display: block; font-size: 14px; font-weight: bold; color: #0043b0; }
         /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
@@ -629,6 +630,16 @@
     // בשתי ידיים זה כן היה עולה במחיר.
     document.addEventListener('touchstart', e => {
         if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    // הקשה כפולה: ספארי מגדיל כדי "להתאים" אלמנט למסך, תמיד לאותה מידה
+    // בדיוק - וזה מסביר למה חזר אותו 1.60 פעמיים. touch-action אמור היה
+    // לחסום את זה ולא חסם, אז חוסמים את הנגיעה השנייה עצמה. הקלידים
+    // עובדים על pointerdown ולכן הנגינה לא מושפעת.
+    let lastTapEnd = 0;
+    document.addEventListener('touchend', e => {
+        const now = Date.now();
+        if (now - lastTapEnd <= 350) e.preventDefault();
+        lastTapEnd = now;
     }, { passive: false });
 
     const startScreen = document.getElementById('start-screen');
@@ -1395,6 +1406,22 @@
     const keyJumps = [];
     const readKeyW = () => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--white-w")) || 0);
     let lastKeyW = readKeyW();
+    // רישום המגעים האחרונים. ברגע שההגדלה קורית הרישום קופא, כדי
+    // שאפשר יהיה לקרוא בדיוק מה קדם לה: כמה אצבעות, ובאיזה מרווח.
+    const touchLog = [];
+    let zoomTrigger = "";
+    document.addEventListener('touchstart', e => {
+        touchLog.push({ t: Date.now(), n: e.touches.length });
+        if (touchLog.length > 6) touchLog.shift();
+    }, { passive: true });
+    function checkZoom() {
+        const vv = window.visualViewport;
+        if (!vv || zoomTrigger || vv.scale <= 1.01) return;
+        const now = Date.now();
+        const seq = touchLog.map((x, i) => (i ? "+" + (x.t - touchLog[i - 1].t) + "ms " : "") + x.n + "f").join(" ");
+        const since = touchLog.length ? (now - touchLog[touchLog.length - 1].t) + "ms" : "-";
+        zoomTrigger = "x" + vv.scale.toFixed(2) + " after " + since + " | " + (seq || "no touches");
+    }
     // נמדדים פעם אחת בטעינה, ומשמשים כנקודת ההשוואה.
     const dpr0 = window.devicePixelRatio;
     const keyW0 = readKeyW();
@@ -1411,6 +1438,7 @@
         if (ev) lastEvent = ev;
         const vv = window.visualViewport;
         const kw = readKeyW();
+        checkZoom();
         if (kw !== lastKeyW) {
             keyJumps.push(lastKeyW + "->" + kw + " @" + lastEvent);
             if (keyJumps.length > 3) keyJumps.shift();
@@ -1435,6 +1463,12 @@
             "  fing " + fingersNow + "/" + fingersMax +
             "\nlast: " + lastEvent +
             (keyJumps.length ? "\njumps: " + keyJumps.join("  ") : "")));
+        if (zoomTrigger) {
+            const trg = document.createElement("span");
+            trg.id = "dbg-trigger";
+            trg.textContent = "TRIGGER " + zoomTrigger;
+            dbg.appendChild(trg);
+        }
         placeDbg();
     }
 
