@@ -509,6 +509,13 @@
         /* גלילת החמשה נעשית מהקוד (scrollIntoView) ולא באצבע, בכוונה:
            אצבע שנחה על תו לא אמורה לגרור את החמשה מתחתיה. */
         .sol-home-btn { touch-action: manipulation; }
+        /* שורת אבחון זמנית — יורדת ברגע שנדע מה גורם להגדלה */
+        #dbg-bar {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+            background: rgba(255,255,255,0.93); color: #000;
+            font: 11px/1.4 monospace; direction: ltr; text-align: left;
+            padding: 4px 6px; white-space: pre-wrap; pointer-events: none;
+        }
         /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
@@ -1361,6 +1368,52 @@
     // הארון עדיין לא נמדד בשלב הזה, אז בונים שוב כשהפריסה מתייצבת
     [0, 300, 900].forEach(ms => setTimeout(() => { if (soloMode && !soloHold) buildStaff(); }, ms));
     window.addEventListener('load', () => { if (soloMode && !soloHold) buildStaff(); });
+
+    // ===================== שורת אבחון זמנית =====================
+    // נוספה כדי לענות על שאלה אחת בלבד: כשהמסך גדל, מי גדל.
+    //   scale = ההגדלה של ספארי עצמו. 1.00 פירושו שלא היה זום כלל.
+    //   key   = רוחב הקליד שהקוד שלנו חישב.
+    // אם scale קופץ מעל 1 — זה הדפדפן. אם key קופץ ו-scale נשאר 1.00 —
+    // ההגדלה היא שלנו, מחישוב הפריסה, ולזום אין לזה שום קשר.
+    const dbg = document.createElement("div");
+    dbg.id = "dbg-bar";
+    document.body.appendChild(dbg);
+    let fingersNow = 0, fingersMax = 0, lastEvent = "start";
+    const keyJumps = [];
+    const readKeyW = () => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--white-w")) || 0);
+    let lastKeyW = readKeyW();
+    function paintDbg(ev) {
+        if (ev) lastEvent = ev;
+        const vv = window.visualViewport;
+        const kw = readKeyW();
+        if (kw !== lastKeyW) {
+            keyJumps.push(lastKeyW + "->" + kw + " @" + lastEvent);
+            if (keyJumps.length > 3) keyJumps.shift();
+            lastKeyW = kw;
+        }
+        dbg.textContent =
+            "win " + innerWidth + "x" + innerHeight +
+            "  vv " + (vv ? Math.round(vv.width) + "x" + Math.round(vv.height) : "-") +
+            "  scale " + (vv ? vv.scale.toFixed(2) : "-") +
+            "  key " + kw +
+            "  pc " + Math.round(pianoContainer.clientWidth) +
+            "  fing " + fingersNow + "/" + fingersMax +
+            "\nlast: " + lastEvent +
+            (keyJumps.length ? "   jumps: " + keyJumps.join("  ") : "");
+    }
+    ["resize", "orientationchange"].forEach(t => window.addEventListener(t, () => paintDbg(t)));
+    if (window.visualViewport) {
+        ["resize", "scroll"].forEach(t => window.visualViewport.addEventListener(t, () => paintDbg("vv-" + t)));
+    }
+    document.addEventListener("touchstart", e => {
+        fingersNow = e.touches.length;
+        fingersMax = Math.max(fingersMax, fingersNow);
+        paintDbg("touchstart x" + fingersNow);
+    }, { passive: true });
+    document.addEventListener("touchend", e => { fingersNow = e.touches.length; paintDbg("touchend"); }, { passive: true });
+    setInterval(() => paintDbg(), 400);
+    paintDbg("start");
+    // =================== סוף שורת האבחון ===================
 
     setInterval(() => {
         // This loop drives the timed-practice due-highlight/songIdx off the
