@@ -1305,7 +1305,15 @@
 
     function updateStaffScroll() {
         const cur = staffNoteEls[soloIdx];
-        if (cur) cur.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+        if (!cur) return;
+        // scrollIntoView מבקש מהדפדפן "לחשוף" את האלמנט, ומשאיר לו לבחור
+        // איך. ספארי באייפון בוחר לפעמים להגדיל את העמוד כולו - וזה קורה
+        // מיד אחרי שתו נסגר, בלי שום מחווה של המשתמש, ולכן שום חסימת מגע
+        // לא נגעה בזה. גוללים את החמשה בעצמנו: המכל בלבד, לא העמוד.
+        const target = cur.offsetLeft - (staffWrap.clientWidth - cur.offsetWidth) / 2;
+        const left = Math.max(0, Math.min(target, staffInner.offsetWidth - staffWrap.clientWidth));
+        if (staffWrap.scrollTo) staffWrap.scrollTo({ left: left, behavior: 'smooth' });
+        else staffWrap.scrollLeft = left;
     }
 
     soloBtn.addEventListener('click', () => {
