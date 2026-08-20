@@ -481,18 +481,9 @@
             box-shadow: 0 0 0 7px rgba(111,214,201,0.45), 0 0 14px 4px rgba(111,214,201,0.9);
         }
 
-        /* שורת הקצב: עיגול לכל תו, בגודל לפי אורכו, כדי לראות את הקצב
-           של השורה עוד לפני שמנגנים אותה. */
-        #rhythm-lane { position: absolute; top: 0; left: 0; right: 0; height: 30px; pointer-events: none; z-index: 1; }
-        .rhythm-dot {
-            position: absolute; transform: translate(-50%, -50%);
-            border-radius: 50%; overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.45);
-            background: rgba(255,255,255,0.06);
-            opacity: .45; transition: opacity .2s ease;
-        }
-        .rhythm-dot.current { opacity: 1; border-color: var(--gold); }
-        .rhythm-dot.done { opacity: .75; border-color: var(--teal); }
+        /* אפשר לנגן מהעיגול עצמו, ולא רק מהקליד */
+        .staff-note { cursor: pointer; }
+        .staff-note .staff-note-avatar { border-width: 3px; }
 
         /* אצבע שנחה על עיגול: iOS מנסה לגרור אותו כתמונה, לפתוח תפריט
            לחיצה ארוכה ולסמן טקסט — הכתם הכחול וזכוכית המגדלת שצפה מעליו. */
@@ -1083,14 +1074,14 @@
     // letter in treble clef, single octave from C4. Sharps reuse their
     // neighboring natural's height — same convention as the falling-note
     // lane and the physical black keys.
-    const STAFF_PITCH_Y = { C: 60, D: 54, E: 48, F: 42, G: 36, A: 30, B: 24 };
-
-    // גובה שורת הקצב שמעל החמשה. המקום לה מגיע מהסרגל שהוסתר,
-    // לא מהחמשה עצמה — התווים נשארים בדיוק בגודל שהיו.
-    const RHYTHM_H = 30;
+    // מצב "לנסות לבד" ויתר על החמשה ועל גובה התווים בכוונה: ברגע שתו
+    // צריך לשבת בגובה שמייצג את הצליל, כל טווח הצלילים אוכל את הגובה
+    // ולדמות עצמה נשאר שליש ממנו - 25 פיקסלים, שילד בן 4 לא רואה.
+    // בשורה אחת הדמות מקבלת כמעט את כל הגובה, וגם אפשר ללחוץ עליה.
+    // מצב התרגול הרגיל לא הושפע ועדיין עובד על מסלול התווים הנופלים.
+    const NOTE_HOLD_D = 90;  // תו שמחזיקים
+    const NOTE_TAP_D  = 70;  // תו של נגיעה
     const staffWaterEls = [];
-    const rhythmDotEls = [];
-    let rhythmLane = null;
 
     const WAVE_TOP  = "M-100,0 q25,-6 50,0 t50,0 t50,0 t50,0 t50,0 t50,0";
     const WAVE_PATH = WAVE_TOP + " V115 H-100 Z";
@@ -1108,95 +1099,70 @@
     }
     function paintNoteFill(idx, p) {
         setWater(staffWaterEls[idx], p);
-        setWater(rhythmDotEls[idx], p);
     }
 
     function buildStaff() {
         staffInner.innerHTML = '';
         staffNoteEls.length = 0;
         staffWaterEls.length = 0;
-        rhythmDotEls.length = 0;
-        const wrapH = staffWrap.clientHeight || 150;
-        const availH = Math.max(40, wrapH - RHYTHM_H);
-        const whiteWpx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--white-w')) || 50;
-        // Note circles are normally sized off key width, but on a wide
-        // landscape screen that can come out bigger than the wrap is tall —
-        // cap them to what actually fits, so they never overlap/clip
-        // instead of just reading the notation smaller.
-        const idealNoteSize = whiteWpx * 0.5;
-        const maxNoteSizeForHeight = Math.max(16, (availH - 16) / 3);
-        const noteSize = Math.min(idealNoteSize, maxNoteSizeForHeight);
-        const offsetY = RHYTHM_H + Math.max(10, (availH - (36 + noteSize)) / 2);
-        rhythmLane = document.createElement('div');
-        rhythmLane.id = 'rhythm-lane';
-        staffInner.appendChild(rhythmLane);
-        [0, 12, 24, 36, 48].forEach(y => {
-            const line = document.createElement('div');
-            line.className = 'staff-line';
-            line.style.top = (y + offsetY) + 'px';
-            staffInner.appendChild(line);
-        });
-        const spacing = noteSize * 1.35;
-        staffInner.style.width = (songNotes.length * spacing + 40) + 'px';
+        const wrapH = staffWrap.clientHeight || 116;
+        const wrapW = staffWrap.clientWidth || 320;
+        // 90 הוא הגודל שנבחר, אבל לא על חשבון שני דברים: שהעיגול ייכנס
+        // בגובה הרצועה, ושתמיד יישארו כמה תווים קדימה על המסך.
+        const scale = Math.min(1, (wrapH - 14) / NOTE_HOLD_D, (wrapW * 0.34) / NOTE_HOLD_D);
+        const spacing = NOTE_HOLD_D * scale * 1.35;
+        staffInner.style.width = (songNotes.length * spacing + spacing) + 'px';
         songNotes.forEach((n, i) => {
-            const letter = n.note[0];
-            const y = STAFF_PITCH_Y[letter] + offsetY;
-            const x = 30 + i * spacing;
-            if (letter === 'C') {
-                const ledger = document.createElement('div');
-                ledger.className = 'staff-ledger';
-                ledger.style.left = x + 'px';
-                ledger.style.top = y + 'px';
-                ledger.style.width = (noteSize * 1.3) + 'px';
-                staffInner.appendChild(ledger);
-            }
+            const d = Math.round((n.hold ? NOTE_HOLD_D : NOTE_TAP_D) * scale);
             const note = document.createElement('div');
-            note.className = 'staff-note';
+            note.className = 'staff-note' + (n.hold ? ' is-hold' : ' is-tap');
             if (i < soloIdx) note.classList.add('done');
-            note.style.left = x + 'px';
-            note.style.top = y + 'px';
-            // תו שמחזיקים גדול, תו של נגיעה קטן — כדי שההבדל ייקרא גם
-            // על החמשה עצמה, במקום שהילד יצטרך להרים עיניים לשורת הקצב.
-            const thisSize = Math.round(n.hold ? noteSize : noteSize * 0.78);
-            note.style.width = thisSize + 'px';
-            note.style.height = thisSize + 'px';
+            note.style.left = (spacing * 0.6 + i * spacing) + 'px';
+            note.style.top = (wrapH / 2) + 'px';
+            note.style.width = d + 'px';
+            note.style.height = d + 'px';
             const avatar = document.createElement('div');
             avatar.className = 'staff-note-avatar';
             const img = document.createElement('img');
-            img.src = characterImages[noteLetterOrder.indexOf(letter)] || '';
+            img.src = characterImages[noteLetterOrder.indexOf(n.note[0])] || '';
             img.draggable = false;
             avatar.appendChild(img);
-            // המים יושבים מעל הדמות בשקיפות, כדי שרואים גם את הדמות וגם
-            // את המפלס. מתחתיה הם היו נעלמים — לרקע של התמונות אין שקיפות.
             const water = document.createElement('div');
             water.className = 'note-water';
             water.innerHTML = waterSvg('0.72');
             avatar.appendChild(water);
             staffWaterEls.push(water);
             note.appendChild(avatar);
+            // אפשר לנגן מכאן או מהקליד, לבחירת התלמיד.
+            note.addEventListener('pointerdown', (e) => { e.preventDefault(); circleDown(i, note); });
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach(t =>
+                note.addEventListener(t, () => circleUp(i, note)));
             staffInner.appendChild(note);
             staffNoteEls.push(note);
-
-            // עיגול הקצב: הגודל הוא האורך. תו של חצי שנייה קטן, תו של
-            // שנייה וחצי גדול — ככה הקצב נקרא לפני שמנגנים אותו.
-            // ההפרש בין קצר לארוך צריך להיות גלוי לילד בן 4, לא הפרש
-            // של שני פיקסלים: 0.5 שנ' -> 12px, 1.4 שנ' -> 28px.
-            const d = Math.round(Math.max(12, Math.min(28, 12 + (n.dur - 0.5) * 18)));
-            const dot = document.createElement('div');
-            dot.className = 'rhythm-dot';
-            dot.style.width = d + 'px';
-            dot.style.height = d + 'px';
-            dot.style.left = x + 'px';
-            dot.style.top = (RHYTHM_H / 2) + 'px';
-            dot.innerHTML = waterSvg('0.9');
-            rhythmLane.appendChild(dot);
-            rhythmDotEls.push(dot);
-
-            // בכוונה אין כאן סימון "התו הבא": במצב הזה הילד קורא את
-            // החמשה בעצמו. מה שכבר נוגן מסומן, מה שלא - לא רומז.
-            if (i < soloIdx) { paintNoteFill(i, 1); dot.classList.add('done'); }
+            if (i < soloIdx) paintNoteFill(i, 1);
         });
         updateStaffScroll();
+    }
+
+    // נגינה מהעיגול עצמו. רק התו שבתור מגיב; נגיעה באחרים לא עושה כלום
+    // ואינה נספרת כטעות, בדיוק כמו קליד לא נכון במצב הזה.
+    function circleDown(idx, el) {
+        if (!soloMode || soloHold || idx !== soloIdx) return;
+        const n = songNotes[idx];
+        const keyEl = keyByNote[n.note];
+        if (keyEl) keyEl.classList.add('active');
+        dismissPracticeHint();
+        try { sampler.triggerAttack(n.note); } catch (err) {}
+        if (n.hold) startHold(idx, el);
+        else completeSoloNote(idx, el);
+    }
+    function circleUp(idx, el) {
+        const n = songNotes[idx];
+        if (!n) return;
+        try { sampler.triggerRelease(n.note); } catch (err) {}
+        const keyEl = keyByNote[n.note];
+        if (keyEl) keyEl.classList.remove('active');
+        releaseHold(el);
     }
 
     // --- ניסוי קצב: החזקת תו ---
@@ -1217,27 +1183,27 @@
         } catch (err) {}
     }
 
-    function markDotState() {
-        rhythmDotEls.forEach((dot, i) => {
-            dot.classList.toggle('done', i < soloIdx);
-        });
-    }
-
-    function completeSoloNote(idx, key) {
-        fillKey(songNotes[idx].note);
-        key.classList.add('correct-flash');
-        const star = document.createElement('div');
-        star.className = 'star-pop';
-        star.textContent = '⭐';
-        key.appendChild(star);
-        setTimeout(() => {
-            key.classList.remove('correct-flash');
-            star.remove();
-        }, 550);
+    // הקליד מהבהב תמיד, גם כשניגנו מהעיגול, כדי שהקשר בין הדמות לקליד
+    // יישאר גלוי. הכוכב מופיע על מה שנלחץ בפועל.
+    function completeSoloNote(idx, pressedEl) {
+        const n = songNotes[idx];
+        const keyEl = keyByNote[n.note];
+        fillKey(n.note);
+        if (keyEl) {
+            keyEl.classList.add('correct-flash');
+            setTimeout(() => keyEl.classList.remove('correct-flash'), 550);
+        }
+        const host = pressedEl || keyEl;
+        if (host) {
+            const star = document.createElement('div');
+            star.className = 'star-pop';
+            star.textContent = '⭐';
+            host.appendChild(star);
+            setTimeout(() => star.remove(), 550);
+        }
         paintNoteFill(idx, 1);
         markStaffNoteDone(idx);
         soloIdx++;
-        markDotState();
         updateStaffScroll();
     }
 
@@ -1380,9 +1346,9 @@
         document.documentElement.style.setProperty('--black-w', blackW + 'px');
         document.documentElement.style.setProperty('--key-h', keyH + 'px');
         document.documentElement.style.setProperty('--lane-h', laneH + 'px');
-        // שורת הקצב מקבלת את הגובה שהסרגל המוסתר פינה, בתנאי שהוא באמת
-        // פנוי — אף פעם לא על חשבון הקלידים.
-        const staffH = Math.min(laneH + RHYTHM_H, Math.max(laneH, availableH - keyH - 8));
+        // רצועת העיגולים היא התוכן המרכזי במצב "לנסות לבד", ולכן היא מקבלת
+        // גובה משלה ולא יורשת את הפס הצר של מסלול התווים הנופלים.
+        const staffH = Math.max(78, Math.min(116, availableH - keyH - 8));
         document.documentElement.style.setProperty('--staff-h', staffH + 'px');
     }
     window.addEventListener('resize', () => {
