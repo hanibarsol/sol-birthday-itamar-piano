@@ -510,12 +510,16 @@
            אצבע שנחה על תו לא אמורה לגרור את החמשה מתחתיה. */
         .sol-home-btn { touch-action: manipulation; }
         /* שורת אבחון זמנית — יורדת ברגע שנדע מה גורם להגדלה */
+        /* ממוקם מהקוד לפי החלון הנראה, לא לפי תחתית העמוד: כשספארי
+           מגדיל, תחתית העמוד יוצאת מהמסך והפס נעלם בדיוק כשצריך אותו. */
         #dbg-bar {
-            position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
-            background: rgba(255,255,255,0.93); color: #000;
+            position: fixed; left: 0; top: 0; z-index: 9999;
+            background: rgba(255,255,255,0.95); color: #000;
             font: 11px/1.4 monospace; direction: ltr; text-align: left;
-            padding: 4px 6px; white-space: pre-wrap; pointer-events: none;
+            padding: 5px 7px; white-space: pre-wrap; pointer-events: none;
+            border-top: 2px solid #000;
         }
+        #dbg-big { display: block; font-size: 19px; font-weight: bold; letter-spacing: 0.5px; }
         /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
@@ -1391,15 +1395,29 @@
             if (keyJumps.length > 3) keyJumps.shift();
             lastKeyW = kw;
         }
-        dbg.textContent =
+        const big = document.createElement("span");
+        big.id = "dbg-big";
+        big.textContent = "SCALE " + (vv ? vv.scale.toFixed(2) : "-") + "   KEY " + kw;
+        dbg.textContent = "";
+        dbg.appendChild(big);
+        dbg.appendChild(document.createTextNode(
             "win " + innerWidth + "x" + innerHeight +
             "  vv " + (vv ? Math.round(vv.width) + "x" + Math.round(vv.height) : "-") +
-            "  scale " + (vv ? vv.scale.toFixed(2) : "-") +
-            "  key " + kw +
             "  pc " + Math.round(pianoContainer.clientWidth) +
             "  fing " + fingersNow + "/" + fingersMax +
             "\nlast: " + lastEvent +
-            (keyJumps.length ? "   jumps: " + keyJumps.join("  ") : "");
+            (keyJumps.length ? "\njumps: " + keyJumps.join("  ") : "")));
+        placeDbg();
+    }
+
+    // הפס נצמד לחלון הנראה בפועל. בלי זה, ברגע שספארי מגדיל, תחתית
+    // העמוד יוצאת מהמסך והפס נעלם - בדיוק ברגע שצריך לקרוא אותו.
+    function placeDbg() {
+        const vv = window.visualViewport;
+        if (!vv) { dbg.style.left = "0px"; dbg.style.width = "100%"; dbg.style.top = (innerHeight - dbg.offsetHeight) + "px"; return; }
+        dbg.style.left = vv.offsetLeft + "px";
+        dbg.style.width = vv.width + "px";
+        dbg.style.top = (vv.offsetTop + vv.height - dbg.offsetHeight) + "px";
     }
     ["resize", "orientationchange"].forEach(t => window.addEventListener(t, () => paintDbg(t)));
     if (window.visualViewport) {
