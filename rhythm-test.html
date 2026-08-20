@@ -100,8 +100,9 @@
                own real, already-correct width. */
             width: calc(var(--white-w) * 7);
             height: var(--staff-h, 150px);
-            overflow-x: auto;
-            overflow-y: hidden;
+            /* אין גלילה: רצועה ארוכה שגולשת מהמסך היא בדיוק מה שספארי
+               בוחר "להתאים למסך" בהגדלה. מציגים רק מה שנכנס. */
+            overflow: hidden;
             border-radius: 8px 8px 0 0;
             background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.32));
             margin-bottom: 6px;
@@ -1101,6 +1102,9 @@
         setWater(staffWaterEls[idx], p);
     }
 
+    // מאיזה תו מתחיל העמוד שמוצג כרגע
+    let pageStart = 0;
+
     function buildStaff() {
         staffInner.innerHTML = '';
         staffNoteEls.length = 0;
@@ -1108,16 +1112,23 @@
         const wrapH = staffWrap.clientHeight || 116;
         const wrapW = staffWrap.clientWidth || 320;
         // 90 הוא הגודל שנבחר, אבל לא על חשבון שני דברים: שהעיגול ייכנס
-        // בגובה הרצועה, ושתמיד יישארו כמה תווים קדימה על המסך.
+        // בגובה הרצועה, ושכמה תווים ייכנסו יחד לרוחב.
         const scale = Math.min(1, (wrapH - 14) / NOTE_HOLD_D, (wrapW * 0.34) / NOTE_HOLD_D);
         const spacing = NOTE_HOLD_D * scale * 1.35;
-        staffInner.style.width = (songNotes.length * spacing + spacing) + 'px';
-        songNotes.forEach((n, i) => {
+        const perPage = Math.max(2, Math.floor(wrapW / spacing));
+        pageStart = Math.floor(soloIdx / perPage) * perPage;
+        const pageEnd = Math.min(songNotes.length, pageStart + perPage);
+        const count = pageEnd - pageStart;
+        staffInner.style.width = '100%';
+        // העמוד האחרון יכול להיות חלקי, ואז הדמויות ממורכזות ולא נדבקות לשמאל
+        const left0 = (wrapW - count * spacing) / 2 + spacing / 2;
+        songNotes.slice(pageStart, pageEnd).forEach((n, k) => {
+            const i = pageStart + k;
             const d = Math.round((n.hold ? NOTE_HOLD_D : NOTE_TAP_D) * scale);
             const note = document.createElement('div');
             note.className = 'staff-note' + (n.hold ? ' is-hold' : ' is-tap');
             if (i < soloIdx) note.classList.add('done');
-            note.style.left = (spacing * 0.6 + i * spacing) + 'px';
+            note.style.left = (left0 + k * spacing) + 'px';
             note.style.top = (wrapH / 2) + 'px';
             note.style.width = d + 'px';
             note.style.height = d + 'px';
@@ -1131,17 +1142,16 @@
             water.className = 'note-water';
             water.innerHTML = waterSvg('0.72');
             avatar.appendChild(water);
-            staffWaterEls.push(water);
+            staffWaterEls[i] = water;
             note.appendChild(avatar);
             // אפשר לנגן מכאן או מהקליד, לבחירת התלמיד.
             note.addEventListener('pointerdown', (e) => { e.preventDefault(); circleDown(i, note); });
             ['pointerup', 'pointerleave', 'pointercancel'].forEach(t =>
                 note.addEventListener(t, () => circleUp(i, note)));
             staffInner.appendChild(note);
-            staffNoteEls.push(note);
+            staffNoteEls[i] = note;
             if (i < soloIdx) paintNoteFill(i, 1);
         });
-        updateStaffScroll();
     }
 
     // נגינה מהעיגול עצמו. רק התו שבתור מגיב; נגיעה באחרים לא עושה כלום
@@ -1269,17 +1279,11 @@
         if (el) el.classList.add('done');
     }
 
+    // במקום גלילה: כשהתלמיד סיים את הדמויות שעל המסך, מופיעות הבאות.
+    // ההחלפה קורית רק בין תו לתו - אף פעם לא באמצע נגינה או החזקה.
     function updateStaffScroll() {
-        const cur = staffNoteEls[soloIdx];
-        if (!cur) return;
-        // scrollIntoView מבקש מהדפדפן "לחשוף" את האלמנט, ומשאיר לו לבחור
-        // איך. ספארי באייפון בוחר לפעמים להגדיל את העמוד כולו - וזה קורה
-        // מיד אחרי שתו נסגר, בלי שום מחווה של המשתמש, ולכן שום חסימת מגע
-        // לא נגעה בזה. גוללים את החמשה בעצמנו: המכל בלבד, לא העמוד.
-        const target = cur.offsetLeft - (staffWrap.clientWidth - cur.offsetWidth) / 2;
-        const left = Math.max(0, Math.min(target, staffInner.offsetWidth - staffWrap.clientWidth));
-        if (staffWrap.scrollTo) staffWrap.scrollTo({ left: left, behavior: 'smooth' });
-        else staffWrap.scrollLeft = left;
+        if (soloHold) return;
+        if (soloIdx < songNotes.length && !staffNoteEls[soloIdx]) buildStaff();
     }
 
     soloBtn.addEventListener('click', () => {
