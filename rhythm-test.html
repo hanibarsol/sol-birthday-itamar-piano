@@ -623,6 +623,13 @@
     document.addEventListener('touchmove', e => {
         if (e.touches.length > 1) e.preventDefault();
     }, { passive: false });
+    // הצביטה היא מחווה של המערכת, ו-touch-action לא שולט בה באייפון.
+    // הדרך היחידה שנשארה היא לתפוס את המגע השני לפני שספארי מפרש אותו.
+    // כאן מנגנים תו אחד בכל רגע, ולכן אין מה לאבד - אבל בנגינה חופשית
+    // בשתי ידיים זה כן היה עולה במחיר.
+    document.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
 
     const startScreen = document.getElementById('start-screen');
     const pianoElement = document.getElementById('piano');
