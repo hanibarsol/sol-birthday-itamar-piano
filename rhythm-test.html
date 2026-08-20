@@ -230,17 +230,24 @@
             padding: 10px 10px 0;
             display: flex; flex-direction: column; align-items: stretch;
         }
+        /* ההוראה ישבה בראש הארון - בדיוק במקום ששורת הקצב תפסה, והסתירה
+           אותה. היא עוברת לשטח השחור הריק שמעל הארון, מתחת לכפתור הבית
+           כדי שלא תשב מתחתיו, ושם היא לא מכסה כלום. */
         #practice-hint {
-            position: absolute;
-            top: 6px; left: 50%;
-            transform: translateX(-50%);
+            position: fixed;
+            top: 72px; left: 0; right: 0;
+            width: fit-content;
+            margin: 0 auto;
+            max-width: calc(100% - 24px);
+            box-sizing: border-box;
+            text-align: center;
             background: rgba(0,0,0,0.8);
             border: 1px solid rgba(111,214,201,0.4);
             color: #fff;
             padding: 8px 18px;
             border-radius: 20px;
             font-size: 16px;
-            white-space: nowrap;
+            white-space: normal;
             z-index: 60;
             opacity: 1;
             transition: opacity 0.4s ease;
@@ -495,6 +502,13 @@
             -webkit-user-select: none; user-select: none;
         }
         .staff-note img, .staff-note svg, .rhythm-dot svg { pointer-events: none; }
+        /* ההגדלה חזרה כי touch-action ב-CSS לא עוברת בירושה: היא הייתה
+           רשומה על body בלבד, אז הקלידים היו מוגנים אבל הרקע השחור,
+           ארון הפסנתר ואזור החמשה נשארו פתוחים להקשה כפולה. */
+        html, body, #app, #app *, #start-screen { touch-action: none; }
+        /* גלילת החמשה נעשית מהקוד (scrollIntoView) ולא באצבע, בכוונה:
+           אצבע שנחה על תו לא אמורה לגרור את החמשה מתחתיה. */
+        .sol-home-btn { touch-action: manipulation; }
         /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
@@ -553,7 +567,6 @@
             <div id="cabinet">
                 <div id="cabinet-lip"></div>
                 <div id="keywell">
-                    <div id="practice-hint" class="hidden">לחצו על הקליד כשהדמות מגיעה לקו 👇</div>
                     <div id="note-lane"></div>
                     <div id="staff-wrap"><div id="staff-inner"></div></div>
                     <div class="piano" id="piano"></div>
@@ -562,6 +575,8 @@
         </div>
     </div>
 </div>
+
+<div id="practice-hint" class="hidden">לחצו על הקליד כשהדמות מגיעה לקו 👇</div>
 
 <div id="start-screen"></div>
 
@@ -638,10 +653,8 @@
         await Tone.start();
         await reverb.ready;
         startScreen.style.display = 'none';
-        // הניסוי בודק רק את "אני רוצה לנסות לבד": השיר לא מתנגן,
-        // אין שעון, והכניסה נופלת ישר למצב העצמאי.
-        soloBtn.click();
-        practiceHint.textContent = 'החזיקו את הקליד עד שהעיגול מתמלא 👇';
+        // המסך כבר במצב "לנסות לבד" מרגע הטעינה. הנגיעה הזו רק משחררת
+        // את השמע, ולכן שום דבר על המסך לא זז מתחת לאצבע.
         showPracticeHint();
     });
 
@@ -1340,6 +1353,14 @@
     requestAnimationFrame(sizeKeys);
     setTimeout(sizeKeys, 400);
     setTimeout(sizeKeys, 1200);
+
+    // הניסוי נכנס ישר לחמשה. קודם המסך הראה את מסלול התווים הנופלים -
+    // מסך מת, בלי שיר ובלי כפתורים - עד שנגעו בו. עכשיו אין רגע כזה.
+    practiceHint.textContent = 'החזיקו את הקליד עד שהעיגול מתמלא 👇';
+    soloBtn.click();
+    // הארון עדיין לא נמדד בשלב הזה, אז בונים שוב כשהפריסה מתייצבת
+    [0, 300, 900].forEach(ms => setTimeout(() => { if (soloMode && !soloHold) buildStaff(); }, ms));
+    window.addEventListener('load', () => { if (soloMode && !soloHold) buildStaff(); });
 
     setInterval(() => {
         // This loop drives the timed-practice due-highlight/songIdx off the
