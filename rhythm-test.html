@@ -519,7 +519,9 @@
             padding: 5px 7px; white-space: pre-wrap; pointer-events: none;
             border-top: 2px solid #000;
         }
-        #dbg-big { display: block; font-size: 19px; font-weight: bold; letter-spacing: 0.5px; }
+        #dbg-big { display: block; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; }
+        #dbg-verdict { display: block; font-size: 19px; font-weight: bold; direction: rtl; text-align: right; padding: 2px 0; }
+        #dbg-verdict.bad { color: #b00020; }
         /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
@@ -1386,6 +1388,18 @@
     const keyJumps = [];
     const readKeyW = () => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--white-w")) || 0);
     let lastKeyW = readKeyW();
+    // נמדדים פעם אחת בטעינה, ומשמשים כנקודת ההשוואה.
+    const dpr0 = window.devicePixelRatio;
+    const keyW0 = readKeyW();
+    // הגדלת Aa של ספארי משנה את devicePixelRatio אבל אף פעם לא את
+    // visualViewport.scale. צביטה עושה בדיוק ההפך. זה מפריד ביניהן.
+    function verdictText() {
+        const vv = window.visualViewport;
+        if (vv && vv.scale > 1.01) return "צביטה של ספארי";
+        if (Math.abs(window.devicePixelRatio - dpr0) > 0.01) return "הגדלת Aa של ספארי";
+        if (readKeyW() !== keyW0) return "חישוב הפריסה שלנו";
+        return "תקין";
+    }
     function paintDbg(ev) {
         if (ev) lastEvent = ev;
         const vv = window.visualViewport;
@@ -1395,10 +1409,17 @@
             if (keyJumps.length > 3) keyJumps.shift();
             lastKeyW = kw;
         }
+        const v = verdictText();
+        const verd = document.createElement("span");
+        verd.id = "dbg-verdict";
+        if (v !== "תקין") verd.className = "bad";
+        verd.textContent = "מצב: " + v;
         const big = document.createElement("span");
         big.id = "dbg-big";
-        big.textContent = "SCALE " + (vv ? vv.scale.toFixed(2) : "-") + "   KEY " + kw;
+        big.textContent = "SCALE " + (vv ? vv.scale.toFixed(2) : "-") + "  KEY " + kw + "/" + keyW0 +
+            "  DPR " + window.devicePixelRatio.toFixed(2) + "/" + dpr0.toFixed(2);
         dbg.textContent = "";
+        dbg.appendChild(verd);
         dbg.appendChild(big);
         dbg.appendChild(document.createTextNode(
             "win " + innerWidth + "x" + innerHeight +
