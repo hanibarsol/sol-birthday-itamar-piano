@@ -480,16 +480,23 @@
            ממנו רק הטבעת - כלומר קו המתאר הקיים עצמו. האצבע מכסה את
            המרכז ולא את השוליים, ולכן זה נשאר גלוי לאורך כל ההחזקה. */
         .staff-note-avatar { z-index: 1; }
+        /* הצביעה היא פרוסת עוגה שגדלה, ולכן בהתחלה היא נראית כמו מניפה.
+           הסתמכות על הדמות שתכסה את המרכז לא הספיקה. כאן המרכז פשוט לא
+           נצבע: מסכה חותכת את העיגול לטבעת בעובי קבוע, ומה שמצויר הוא
+           קו מתאר בלבד. אין צורה מלאה שתוכל להופיע בהתחלה.
+           העטיפה נושאת את הזוהר והילד שבתוכה את הטבעת, כי מסכה מבוטלת
+           את הזוהר אם שתיהן על אותו רכיב. */
         .hold-ring {
             position: absolute; inset: -5px;
             border-radius: 50%; z-index: 0; pointer-events: none;
-            /* בלי רקע חיוור מתחת: אחרת נוצר קצה ישר בנקודה שבה הצביעה
-               מתחילה, והוא נראה כמו פינה משולשת. כך רואים רק את הקשת. */
-            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), transparent 0deg);
-            /* הזוהר עוקב אחרי הצורה בפועל, כלומר אחרי הקשת בלבד ולא אחרי
-               העיגול כולו, וזה מה שנותן את מראה הלד. */
             filter: drop-shadow(0 0 5px rgba(111,214,201,0.95));
             opacity: 0; transition: opacity .18s ease;
+        }
+        .hold-ring::before {
+            content: ""; position: absolute; inset: 0; border-radius: 50%;
+            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), transparent 0deg);
+            -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+            mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
         }
         .staff-note.holding .hold-ring { opacity: 1; }
         .staff-note.hold-full .hold-ring { filter: drop-shadow(0 0 9px rgba(111,214,201,1)); }
