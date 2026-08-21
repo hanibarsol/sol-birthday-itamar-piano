@@ -48,7 +48,7 @@
             align-items: center;
             gap: 5px;
             text-decoration: none;
-            touch-action: manipulation;
+            touch-action: auto;
         }
 
         /* "אני רוצה לנסות לבד" — an alternate, self-paced view: instead of
@@ -57,7 +57,7 @@
            real pitch height, and the child works through them at their own
            pace with no clock pushing them forward. */
         #solo-btn {
-            touch-action: manipulation;
+            touch-action: auto;
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 20px;
             padding: 9px 20px;
@@ -77,7 +77,7 @@
            never layered under the child's own playing — so the piano goes
            inert for that moment instead of inviting a confusing double-take. */
         #melody-btn {
-            touch-action: manipulation;
+            touch-action: auto;
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 20px;
             padding: 9px 20px;
@@ -154,10 +154,10 @@
             gap: 10px;
             padding: 10px 0;
             background: #1a1a1a;
-            touch-action: manipulation;
+            touch-action: auto;
         }
         .speed-step-btn {
-            touch-action: manipulation;
+            touch-action: auto;
             border: none;
             border-radius: 50%;
             width: 40px;
@@ -175,7 +175,7 @@
             font-size: 26px;
         }
         #speed-reset {
-            touch-action: manipulation;
+            touch-action: auto;
             border: none;
             border-radius: 8px;
             padding: 8px 18px;
@@ -413,12 +413,12 @@
             border-radius: 10px;
             padding: 8px;
             max-width: 220px;
-            touch-action: manipulation;
+            touch-action: auto;
             font-family: Arial, sans-serif;
             color: #fff;
         }
         #calib-panel button {
-            touch-action: manipulation;
+            touch-action: auto;
             border: none;
             border-radius: 6px;
             padding: 8px 12px;
@@ -431,7 +431,7 @@
         #calib-clear { background: #555; color: #fff; }
         #calib-copy { background: #4caf50; color: #fff; }
         #calib-list {
-            touch-action: manipulation;
+            touch-action: auto;
             max-height: 110px;
             overflow-y: auto;
             font-size: 12px;
@@ -444,7 +444,7 @@
         }
         #calib-copy-box {
             display: none;
-            touch-action: manipulation;
+            touch-action: auto;
             width: 100%;
             box-sizing: border-box;
             margin-top: 6px;
@@ -494,16 +494,12 @@
             -webkit-user-select: none; user-select: none;
         }
         .staff-note img, .staff-note svg, .rhythm-dot svg { pointer-events: none; }
-        /* ההגדלה חזרה כי touch-action ב-CSS לא עוברת בירושה: היא הייתה
-           רשומה על body בלבד, אז הקלידים היו מוגנים אבל הרקע השחור,
-           ארון הפסנתר ואזור החמשה נשארו פתוחים להקשה כפולה. */
-        /* ב-WebKit הערך שמכבה הקשה-כפולה-להגדלה הוא manipulation בלבד.
-           none נשמע חזק יותר - הוא חוסם גלילה, זום, הכל - אבל דווקא את
-           ההקשה הכפולה הוא לא מכבה באמינות. ההחלפה ל-none נעשתה כאן היום
-           מתוך כוונה לחזק, וכנראה החזירה בדיוק את מה שניסתה לחסום.
-           הצביטה ממילא נחסמת בקוד ולא ב-CSS, אז אין מה להפסיד. */
-        html, body, #app, #app *, #start-screen, .sol-home-btn,
-        .key, .piano, #piano-container { touch-action: manipulation !important; }
+        /* אין כאן שום חסימת זום, וזה מכוון. ב-20/8 נוספו תשע חסימות שונות
+           - צביטה, הקשה כפולה, מגע רב-אצבעות - כל אחת מהן נכשלה, והעמוד
+           דווקא התחיל להגדיל את עצמו. שני שיעורים שלא מגדילים, 
+           sol-halleluya-piano והגרסה של השיעור הזה מ-18/8, לא חוסמים כלום:
+           touch-action: auto על הפקדים, none על הגוף והקלידים, ואפס קוד.
+           זו התצורה שכאן. לא להוסיף חסימות בלי לבדוק מול השיעורים האלה. */
         /* שורת אבחון זמנית — יורדת ברגע שנדע מה גורם להגדלה */
         /* ממוקם מהקוד לפי החלון הנראה, לא לפי תחתית העמוד: כשספארי
            מגדיל, תחתית העמוד יוצאת מהמסך והפס נעלם בדיוק כשצריך אותו. */
@@ -613,29 +609,14 @@
     // back that a 4-8 year old would find. This is a fixed, full-screen
     // instrument; nothing here is meant to be zoomed or panned, so the
     // zoom gestures are refused outright.
-    ['gesturestart', 'gesturechange', 'gestureend'].forEach(evt => {
-        document.addEventListener(evt, e => e.preventDefault(), { passive: false });
-    });
-    document.addEventListener('touchmove', e => {
-        if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
     // הצביטה היא מחווה של המערכת, ו-touch-action לא שולט בה באייפון.
     // הדרך היחידה שנשארה היא לתפוס את המגע השני לפני שספארי מפרש אותו.
     // כאן מנגנים תו אחד בכל רגע, ולכן אין מה לאבד - אבל בנגינה חופשית
     // בשתי ידיים זה כן היה עולה במחיר.
-    document.addEventListener('touchstart', e => {
-        if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
     // הקשה כפולה: ספארי מגדיל כדי "להתאים" אלמנט למסך, תמיד לאותה מידה
     // בדיוק - וזה מסביר למה חזר אותו 1.60 פעמיים. touch-action אמור היה
     // לחסום את זה ולא חסם, אז חוסמים את הנגיעה השנייה עצמה. הקלידים
     // עובדים על pointerdown ולכן הנגינה לא מושפעת.
-    let lastTapEnd = 0;
-    document.addEventListener('touchend', e => {
-        const now = Date.now();
-        if (now - lastTapEnd <= 350) e.preventDefault();
-        lastTapEnd = now;
-    }, { passive: false });
 
     const startScreen = document.getElementById('start-screen');
     const pianoElement = document.getElementById('piano');
@@ -1145,7 +1126,10 @@
             staffWaterEls[i] = water;
             note.appendChild(avatar);
             // אפשר לנגן מכאן או מהקליד, לבחירת התלמיד.
-            note.addEventListener('pointerdown', (e) => { e.preventDefault(); circleDown(i, note); });
+            // אותו דפוס בדיוק כמו הקלידים בשיעורים שעובדים: pointerdown
+            // בלי preventDefault, ורק pointermove נעצר.
+            note.addEventListener('pointerdown', () => circleDown(i, note));
+            note.addEventListener('pointermove', (e) => e.preventDefault());
             ['pointerup', 'pointerleave', 'pointercancel'].forEach(t =>
                 note.addEventListener(t, () => circleUp(i, note)));
             staffInner.appendChild(note);
