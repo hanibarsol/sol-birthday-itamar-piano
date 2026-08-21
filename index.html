@@ -492,7 +492,14 @@
         }
         .hold-ring::before {
             content: ""; position: absolute; inset: 0; border-radius: 50%;
-            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), transparent 0deg);
+            /* הקשת לא מתחילה בראש העיגול אלא 45 מעלות אחריו. הקטע הראשון
+               יצא קצר מכדי להיקרא כקו מתאר, ולכן נראה לא מיושר לעיגול
+               שמתחתיו. כל עוד ההתקדמות לא עברה את הנקודה הזו לא מצויר
+               כלום, ומשם והלאה זו כבר קשת של ממש. */
+            background: conic-gradient(
+                transparent 0deg var(--skip, 45deg),
+                var(--teal) var(--skip, 45deg) calc(var(--p, 0) * 360deg),
+                transparent 0deg);
             -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
             mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
         }
