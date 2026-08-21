@@ -475,9 +475,14 @@
         }
         /* טבעת המילוי יושבת מחוץ לעיגול, ולכן היא נשארת גלויה גם כשאצבע
            מכסה את מרכזו. המים בפנים למי שרואה אותם, הטבעת תמיד. */
+        /* SVG הוא רכיב מוחלף, כמו תמונה: עם inset בלבד הוא לוקח את הגודל
+           המובנה שלו במקום להתפרס, ונוחת במקום הלא נכון. גודל מפורש. */
         .hold-ring {
-            position: absolute; inset: -7px; z-index: 3;
-            pointer-events: none; transform: rotate(-90deg); overflow: visible;
+            position: absolute;
+            left: -7px; top: -7px;
+            width: calc(100% + 14px); height: calc(100% + 14px);
+            z-index: 3; pointer-events: none;
+            transform: rotate(-90deg); transform-origin: 50% 50%; overflow: visible;
         }
         .hold-ring circle {
             fill: none; stroke: var(--gold); stroke-width: 7; stroke-linecap: round;
