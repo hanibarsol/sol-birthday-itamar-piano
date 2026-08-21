@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>ניסוי קצב — המשפחה של סול - תרגול עם שמע</title>
+    <title>המשפחה של סול - תרגול עם שמע</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root {
@@ -100,9 +100,8 @@
                own real, already-correct width. */
             width: calc(var(--white-w) * 7);
             height: var(--staff-h, 150px);
-            /* אין גלילה: רצועה ארוכה שגולשת מהמסך היא בדיוק מה שספארי
-               בוחר "להתאים למסך" בהגדלה. מציגים רק מה שנכנס. */
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             border-radius: 8px 8px 0 0;
             background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.32));
             margin-bottom: 6px;
@@ -231,24 +230,17 @@
             padding: 10px 10px 0;
             display: flex; flex-direction: column; align-items: stretch;
         }
-        /* ההוראה ישבה בראש הארון - בדיוק במקום ששורת הקצב תפסה, והסתירה
-           אותה. היא עוברת לשטח השחור הריק שמעל הארון, מתחת לכפתור הבית
-           כדי שלא תשב מתחתיו, ושם היא לא מכסה כלום. */
         #practice-hint {
-            position: fixed;
-            top: 72px; left: 0; right: 0;
-            width: fit-content;
-            margin: 0 auto;
-            max-width: calc(100% - 24px);
-            box-sizing: border-box;
-            text-align: center;
+            position: absolute;
+            top: 6px; left: 50%;
+            transform: translateX(-50%);
             background: rgba(0,0,0,0.8);
             border: 1px solid rgba(111,214,201,0.4);
             color: #fff;
             padding: 8px 18px;
             border-radius: 20px;
             font-size: 16px;
-            white-space: normal;
+            white-space: nowrap;
             z-index: 60;
             opacity: 1;
             transition: opacity 0.4s ease;
@@ -456,65 +448,6 @@
             border: 1px solid #4caf50;
             padding: 4px;
         }
-
-        /* ================= ניסוי קצב — תוספת זמנית =================
-           קובץ ניסוי בלבד. index.html לא מושפע ממנו בשום צורה.
-           הרעיון: תו ארוך צריך החזקה, לא נגיעה. העיגול של הדמות
-           מתמלא מים כל עוד האצבע למטה, וכשהוא מלא נשמע צלצול.
-           שחרור מוקדם אינו טעות — המים נשפכים חזרה ואפשר לנסות שוב. */
-
-        /* הסרגל העליון יוצא מהניסוי: כאן יש רק "אני רוצה לנסות לבד",
-           והמקום שהוא מפנה הולך לשורת הקצב — לא מקטינים את התווים. */
-        #speed-bar { display: none !important; }
-
-        .staff-note-avatar { position: relative; }
-        .note-water { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-        .note-water svg { width: 100%; height: 100%; display: block; }
-
-        /* בזמן החזקה — טבעת זהב. שום דבר לא גדל ולא זז: האצבע עדיין על
-           העיגול, ותנועה מתחתיה נראית כאילו הוא מתנפח ובורח. */
-        .staff-note.holding .staff-note-avatar {
-            border-color: var(--gold);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,214,102,0.5);
-        }
-        .staff-note.hold-full .staff-note-avatar {
-            border-color: var(--teal);
-            box-shadow: 0 0 0 7px rgba(111,214,201,0.45), 0 0 14px 4px rgba(111,214,201,0.9);
-        }
-
-        /* אפשר לנגן מהעיגול עצמו, ולא רק מהקליד */
-        .staff-note { cursor: pointer; }
-        .staff-note .staff-note-avatar { border-width: 3px; }
-
-        /* אצבע שנחה על עיגול: iOS מנסה לגרור אותו כתמונה, לפתוח תפריט
-           לחיצה ארוכה ולסמן טקסט — הכתם הכחול וזכוכית המגדלת שצפה מעליו. */
-        .staff-note, .staff-note *, .key, .key *, #rhythm-lane, #rhythm-lane * {
-            -webkit-user-drag: none; user-drag: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none; user-select: none;
-        }
-        .staff-note img, .staff-note svg, .rhythm-dot svg { pointer-events: none; }
-        /* אין כאן שום חסימת זום, וזה מכוון. ב-20/8 נוספו תשע חסימות שונות
-           - צביטה, הקשה כפולה, מגע רב-אצבעות - כל אחת מהן נכשלה, והעמוד
-           דווקא התחיל להגדיל את עצמו. שני שיעורים שלא מגדילים, 
-           sol-halleluya-piano והגרסה של השיעור הזה מ-18/8, לא חוסמים כלום:
-           touch-action: auto על הפקדים, none על הגוף והקלידים, ואפס קוד.
-           זו התצורה שכאן. לא להוסיף חסימות בלי לבדוק מול השיעורים האלה. */
-        /* שורת אבחון זמנית — יורדת ברגע שנדע מה גורם להגדלה */
-        /* ממוקם מהקוד לפי החלון הנראה, לא לפי תחתית העמוד: כשספארי
-           מגדיל, תחתית העמוד יוצאת מהמסך והפס נעלם בדיוק כשצריך אותו. */
-        #dbg-bar {
-            position: fixed; left: 0; top: 0; z-index: 9999;
-            background: rgba(255,255,255,0.95); color: #000;
-            font: 11px/1.4 monospace; direction: ltr; text-align: left;
-            padding: 5px 7px; white-space: pre-wrap; pointer-events: none;
-            border-top: 2px solid #000;
-        }
-        #dbg-big { display: block; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; }
-        #dbg-verdict { display: block; font-size: 19px; font-weight: bold; direction: rtl; text-align: right; padding: 2px 0; }
-        #dbg-verdict.bad { color: #b00020; }
-        #dbg-trigger { display: block; font-size: 14px; font-weight: bold; color: #0043b0; }
-        /* ================= סוף תוספת הניסוי ================= */
     </style>
 <style>
 /* ---------- Sol home button (unified turquoise) ---------- */
@@ -560,7 +493,7 @@
     <video id="song-audio" src="song.mp4" style="display:none" playsinline muted></video>
     <audio id="melody-audio" src="melody.mp3" preload="none"></audio>
     <div id="speed-bar">
-        <button id="play-pause" class="speed-step-btn">▶</button>
+        <button id="play-pause" class="speed-step-btn">⏸</button>
         <button id="speed-minus" class="speed-step-btn">－</button>
         <button id="speed-reset" class="is-normal">מהירות</button>
         <button id="speed-plus" class="speed-step-btn">＋</button>
@@ -572,6 +505,7 @@
             <div id="cabinet">
                 <div id="cabinet-lip"></div>
                 <div id="keywell">
+                    <div id="practice-hint" class="hidden">לחצו על הקליד כשהדמות מגיעה לקו 👇</div>
                     <div id="note-lane"></div>
                     <div id="staff-wrap"><div id="staff-inner"></div></div>
                     <div class="piano" id="piano"></div>
@@ -580,8 +514,6 @@
         </div>
     </div>
 </div>
-
-<div id="practice-hint" class="hidden">לחצו על הקליד כשהדמות מגיעה לקו 👇</div>
 
 <div id="start-screen"></div>
 
@@ -604,20 +536,6 @@
 </div>
 
 <script>
-    // iOS Safari ignores user-scalable=no, so a stray pinch — or a quick
-    // double-tap near the top-bar buttons — zoomed the page in with no way
-    // back that a 4-8 year old would find. This is a fixed, full-screen
-    // instrument; nothing here is meant to be zoomed or panned, so the
-    // zoom gestures are refused outright.
-    // הצביטה היא מחווה של המערכת, ו-touch-action לא שולט בה באייפון.
-    // הדרך היחידה שנשארה היא לתפוס את המגע השני לפני שספארי מפרש אותו.
-    // כאן מנגנים תו אחד בכל רגע, ולכן אין מה לאבד - אבל בנגינה חופשית
-    // בשתי ידיים זה כן היה עולה במחיר.
-    // הקשה כפולה: ספארי מגדיל כדי "להתאים" אלמנט למסך, תמיד לאותה מידה
-    // בדיוק - וזה מסביר למה חזר אותו 1.60 פעמיים. touch-action אמור היה
-    // לחסום את זה ולא חסם, אז חוסמים את הנגיעה השנייה עצמה. הקלידים
-    // עובדים על pointerdown ולכן הנגינה לא מושפעת.
-
     const startScreen = document.getElementById('start-screen');
     const pianoElement = document.getElementById('piano');
     const pianoContainer = document.getElementById('piano-container');
@@ -660,9 +578,8 @@
         await Tone.start();
         await reverb.ready;
         startScreen.style.display = 'none';
-        // המסך כבר במצב "לנסות לבד" מרגע הטעינה. הנגיעה הזו רק משחררת
-        // את השמע, ולכן שום דבר על המסך לא זז מתחת לאצבע.
         showPracticeHint();
+        player.playVideo();
     });
 
     // Speed stepper: minus/plus move between steps. 0.7x (30% slower) is
@@ -785,20 +702,6 @@
     const songLetters = ['E', 'E', 'E', 'E', 'D', 'C', 'F', 'F', 'F', 'F', 'E', 'D', 'G', 'G', 'A', 'G', 'F', 'E', 'D', 'E', 'F', 'G', 'E', 'E', 'E', 'E', 'D', 'C', 'F', 'F', 'F', 'F', 'E', 'D', 'G', 'G', 'A', 'G', 'F', 'E', 'D', 'E', 'D', 'C'];
     const songNotes = songTimes.map((t, i) => ({ time: t, note: songLetters[i] + '4' }));
 
-    // --- ניסוי קצב: מאיפה מגיע אורך התו ---
-    // הנתונים למעלה הם רק רגעי הכניסה של כל תו, אין בהם אורך. האורך
-    // נגזר מהמרווח עד התו הבא. התקרה קיימת בגלל ההפסקה בין הבתים
-    // (2.19 שנ' אחרי התו ה-22) — זו שתיקה, לא תו שמחזיקים כפליים.
-    const HOLD_MIN = 0.75;  // מתחת לזה: נגיעה. מעל: החזקה.
-    const DUR_CAP  = 1.4;   // תקרה לאורך תו
-    const LAST_DUR = 1.0;   // לתו האחרון אין מרווח אחריו
-    const HOLD_TOL = 0.90;  // 90% מהאורך כבר נחשב מלא
-    songNotes.forEach((n, i) => {
-        const gap = i < songNotes.length - 1 ? songNotes[i + 1].time - n.time : LAST_DUR;
-        n.dur = Math.min(gap, DUR_CAP);
-        n.hold = n.dur >= HOLD_MIN;
-    });
-
     const songNoteTotals = {};
     songNotes.forEach(n => { songNoteTotals[n.note] = (songNoteTotals[n.note] || 0) + 1; });
     const songNoteCorrect = {};
@@ -919,11 +822,22 @@
                 try { sampler.triggerAttack(fullNote); } catch (err) {}
 
                 if (soloMode) {
-                    // ניסוי קצב: "נכון" הוא עדיין התו הבא בתור, אבל עכשיו
-                    // גם האורך שלו נחשב — תו ארוך נדרש להחזקה, לא לנגיעה.
+                    // Self-paced: "correct" just means "the right next note
+                    // in the sequence," with no clock involved at all.
                     if (soloIdx < songNotes.length && fullNote === songNotes[soloIdx].note) {
-                        if (songNotes[soloIdx].hold) startHold(soloIdx, key);
-                        else completeSoloNote(soloIdx, key);
+                        fillKey(fullNote);
+                        key.classList.add('correct-flash');
+                        const star = document.createElement('div');
+                        star.className = 'star-pop';
+                        star.textContent = '⭐';
+                        key.appendChild(star);
+                        setTimeout(() => {
+                            key.classList.remove('correct-flash');
+                            star.remove();
+                        }, 550);
+                        markStaffNoteDone(soloIdx);
+                        soloIdx++;
+                        updateStaffScroll();
                     }
                 } else if (!songHit && songIdx < songNotes.length) {
                     const cur = songNotes[songIdx];
@@ -951,7 +865,6 @@
                 if (key.dataset.isPlaying === "false") return;
                 key.dataset.isPlaying = "false";
                 key.classList.remove('active');
-                releaseHold(key);
                 try { sampler.triggerRelease(fullNote); } catch (err) {}
             };
 
@@ -1056,206 +969,58 @@
     // letter in treble clef, single octave from C4. Sharps reuse their
     // neighboring natural's height — same convention as the falling-note
     // lane and the physical black keys.
-    // מצב "לנסות לבד" ויתר על החמשה ועל גובה התווים בכוונה: ברגע שתו
-    // צריך לשבת בגובה שמייצג את הצליל, כל טווח הצלילים אוכל את הגובה
-    // ולדמות עצמה נשאר שליש ממנו - 25 פיקסלים, שילד בן 4 לא רואה.
-    // בשורה אחת הדמות מקבלת כמעט את כל הגובה, וגם אפשר ללחוץ עליה.
-    // מצב התרגול הרגיל לא הושפע ועדיין עובד על מסלול התווים הנופלים.
-    const NOTE_HOLD_D = 90;  // תו שמחזיקים
-    const NOTE_TAP_D  = 70;  // תו של נגיעה
-    const staffWaterEls = [];
-
-    const WAVE_TOP  = "M-100,0 q25,-6 50,0 t50,0 t50,0 t50,0 t50,0 t50,0";
-    const WAVE_PATH = WAVE_TOP + " V115 H-100 Z";
-    function waterSvg(opacity) {
-        return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
-            '<path class="wv" fill="#0F8C82" fill-opacity="' + opacity + '" d="' + WAVE_PATH + '" transform="translate(0,100)"></path>' +
-            '<path class="wv" fill="none" stroke="#BFF6EE" stroke-width="6" stroke-opacity="0.95" d="' + WAVE_TOP + '" transform="translate(0,100)"></path>' +
-            '</svg>';
-    }
-    function setWater(el, p) {
-        if (!el) return;
-        // הגל מתנדנד קלות בזמן שהוא עולה, כדי שייראה כמו מים ולא כמו פס
-        const t = 'translate(' + (Math.sin(Date.now() / 240) * 6) + ',' + ((1 - p) * 100) + ')';
-        el.querySelectorAll('.wv').forEach(wv => wv.setAttribute('transform', t));
-    }
-    function paintNoteFill(idx, p) {
-        setWater(staffWaterEls[idx], p);
-    }
-
-    // מאיזה תו מתחיל העמוד שמוצג כרגע
-    let pageStart = 0;
+    const STAFF_PITCH_Y = { C: 60, D: 54, E: 48, F: 42, G: 36, A: 30, B: 24 };
 
     function buildStaff() {
         staffInner.innerHTML = '';
         staffNoteEls.length = 0;
-        staffWaterEls.length = 0;
-        const wrapH = staffWrap.clientHeight || 116;
-        const wrapW = staffWrap.clientWidth || 320;
-        // 90 הוא הגודל שנבחר, אבל לא על חשבון שני דברים: שהעיגול ייכנס
-        // בגובה הרצועה, ושכמה תווים ייכנסו יחד לרוחב.
-        const scale = Math.min(1, (wrapH - 14) / NOTE_HOLD_D, (wrapW * 0.34) / NOTE_HOLD_D);
-        const spacing = NOTE_HOLD_D * scale * 1.35;
-        const perPage = Math.max(2, Math.floor(wrapW / spacing));
-        pageStart = Math.floor(soloIdx / perPage) * perPage;
-        const pageEnd = Math.min(songNotes.length, pageStart + perPage);
-        const count = pageEnd - pageStart;
-        staffInner.style.width = '100%';
-        // העמוד האחרון יכול להיות חלקי, ואז הדמויות ממורכזות ולא נדבקות לשמאל
-        const left0 = (wrapW - count * spacing) / 2 + spacing / 2;
-        songNotes.slice(pageStart, pageEnd).forEach((n, k) => {
-            const i = pageStart + k;
-            const d = Math.round((n.hold ? NOTE_HOLD_D : NOTE_TAP_D) * scale);
+        const wrapH = staffWrap.clientHeight || 150;
+        const whiteWpx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--white-w')) || 50;
+        // Note circles are normally sized off key width, but on a wide
+        // landscape screen that can come out bigger than the wrap is tall —
+        // cap them to what actually fits, so they never overlap/clip
+        // instead of just reading the notation smaller.
+        const idealNoteSize = whiteWpx * 0.5;
+        const maxNoteSizeForHeight = Math.max(16, (wrapH - 16) / 3);
+        const offsetY = Math.max(10, (wrapH - (36 + Math.min(idealNoteSize, maxNoteSizeForHeight))) / 2);
+        [0, 12, 24, 36, 48].forEach(y => {
+            const line = document.createElement('div');
+            line.className = 'staff-line';
+            line.style.top = (y + offsetY) + 'px';
+            staffInner.appendChild(line);
+        });
+        const noteSize = Math.min(idealNoteSize, maxNoteSizeForHeight);
+        const spacing = noteSize * 1.35;
+        staffInner.style.width = (songNotes.length * spacing + 40) + 'px';
+        songNotes.forEach((n, i) => {
+            const letter = n.note[0];
+            const y = STAFF_PITCH_Y[letter] + offsetY;
+            const x = 30 + i * spacing;
+            if (letter === 'C') {
+                const ledger = document.createElement('div');
+                ledger.className = 'staff-ledger';
+                ledger.style.left = x + 'px';
+                ledger.style.top = y + 'px';
+                ledger.style.width = (noteSize * 1.3) + 'px';
+                staffInner.appendChild(ledger);
+            }
             const note = document.createElement('div');
-            note.className = 'staff-note' + (n.hold ? ' is-hold' : ' is-tap');
+            note.className = 'staff-note';
             if (i < soloIdx) note.classList.add('done');
-            note.style.left = (left0 + k * spacing) + 'px';
-            note.style.top = (wrapH / 2) + 'px';
-            note.style.width = d + 'px';
-            note.style.height = d + 'px';
+            note.style.left = x + 'px';
+            note.style.top = y + 'px';
+            note.style.width = noteSize + 'px';
+            note.style.height = noteSize + 'px';
             const avatar = document.createElement('div');
             avatar.className = 'staff-note-avatar';
             const img = document.createElement('img');
-            img.src = characterImages[noteLetterOrder.indexOf(n.note[0])] || '';
-            img.draggable = false;
+            img.src = characterImages[noteLetterOrder.indexOf(letter)] || '';
             avatar.appendChild(img);
-            const water = document.createElement('div');
-            water.className = 'note-water';
-            water.innerHTML = waterSvg('0.72');
-            avatar.appendChild(water);
-            staffWaterEls[i] = water;
             note.appendChild(avatar);
-            // אפשר לנגן מכאן או מהקליד, לבחירת התלמיד.
-            // אותו דפוס בדיוק כמו הקלידים בשיעורים שעובדים: pointerdown
-            // בלי preventDefault, ורק pointermove נעצר.
-            note.addEventListener('pointerdown', () => circleDown(i, note));
-            note.addEventListener('pointermove', (e) => e.preventDefault());
-            ['pointerup', 'pointerleave', 'pointercancel'].forEach(t =>
-                note.addEventListener(t, () => circleUp(i, note)));
             staffInner.appendChild(note);
-            staffNoteEls[i] = note;
-            if (i < soloIdx) paintNoteFill(i, 1);
+            staffNoteEls.push(note);
         });
-    }
-
-    // נגינה מהעיגול עצמו. רק התו שבתור מגיב; נגיעה באחרים לא עושה כלום
-    // ואינה נספרת כטעות, בדיוק כמו קליד לא נכון במצב הזה.
-    function circleDown(idx, el) {
-        if (!soloMode || soloHold || idx !== soloIdx) return;
-        const n = songNotes[idx];
-        const keyEl = keyByNote[n.note];
-        if (keyEl) keyEl.classList.add('active');
-        dismissPracticeHint();
-        try { sampler.triggerAttack(n.note); } catch (err) {}
-        if (n.hold) startHold(idx, el);
-        else completeSoloNote(idx, el);
-    }
-    function circleUp(idx, el) {
-        const n = songNotes[idx];
-        if (!n) return;
-        try { sampler.triggerRelease(n.note); } catch (err) {}
-        const keyEl = keyByNote[n.note];
-        if (keyEl) keyEl.classList.remove('active');
-        releaseHold(el);
-    }
-
-    // --- ניסוי קצב: החזקת תו ---
-    let soloHold = null;
-    let drainSeq = 0;
-    let chimeSynth = null;
-
-    function holdChime() {
-        try {
-            if (!chimeSynth) {
-                chimeSynth = new Tone.Synth({
-                    oscillator: { type: 'sine' },
-                    envelope: { attack: 0.005, decay: 0.4, sustain: 0, release: 0.1 }
-                }).toDestination();
-                chimeSynth.volume.value = -14;
-            }
-            chimeSynth.triggerAttackRelease('C7', 0.25);
-        } catch (err) {}
-    }
-
-    // הקליד מהבהב תמיד, גם כשניגנו מהעיגול, כדי שהקשר בין הדמות לקליד
-    // יישאר גלוי. הכוכב מופיע על מה שנלחץ בפועל.
-    function completeSoloNote(idx, pressedEl) {
-        const n = songNotes[idx];
-        const keyEl = keyByNote[n.note];
-        fillKey(n.note);
-        if (keyEl) {
-            keyEl.classList.add('correct-flash');
-            setTimeout(() => keyEl.classList.remove('correct-flash'), 550);
-        }
-        const host = pressedEl || keyEl;
-        if (host) {
-            const star = document.createElement('div');
-            star.className = 'star-pop';
-            star.textContent = '⭐';
-            host.appendChild(star);
-            setTimeout(() => star.remove(), 550);
-        }
-        paintNoteFill(idx, 1);
-        markStaffNoteDone(idx);
-        soloIdx++;
         updateStaffScroll();
-    }
-
-    function startHold(idx, key) {
-        if (soloHold) return;
-        drainSeq++;
-        soloHold = { idx: idx, key: key, full: false, t0: Date.now(), need: songNotes[idx].dur * 1000 };
-        const el = staffNoteEls[idx];
-        if (el) el.classList.add('holding');
-        holdTick();
-    }
-
-    function holdTick() {
-        if (!soloHold) return;
-        const p = Math.min(1, (Date.now() - soloHold.t0) / soloHold.need);
-        paintNoteFill(soloHold.idx, p);
-        if (p >= 1 && !soloHold.full) {
-            soloHold.full = true;
-            const el = staffNoteEls[soloHold.idx];
-            if (el) el.classList.add('hold-full');
-            holdChime();
-        }
-        soloHold.raf = requestAnimationFrame(holdTick);
-    }
-
-    function releaseHold(key) {
-        if (!soloHold || soloHold.key !== key) return;
-        const h = soloHold;
-        soloHold = null;
-        cancelAnimationFrame(h.raf);
-        const el = staffNoteEls[h.idx];
-        if (el) el.classList.remove('holding', 'hold-full');
-        const p = Math.min(1, (Date.now() - h.t0) / h.need);
-        if (p >= HOLD_TOL) completeSoloNote(h.idx, h.key);
-        else drainNote(h.idx, p);
-    }
-
-    // שחרור מוקדם הוא לא טעות — המים פשוט נשפכים החוצה, ומנסים שוב.
-    // שום דבר לא נספר לרעה ושום דבר לא מהבהב באדום.
-    function drainNote(idx, from) {
-        const t0 = Date.now();
-        const mine = ++drainSeq;
-        (function step() {
-            if (mine !== drainSeq) return;
-            const q = Math.min(1, (Date.now() - t0) / 280);
-            paintNoteFill(idx, from * (1 - q));
-            if (q < 1) requestAnimationFrame(step);
-        })();
-    }
-
-    function cancelHold() {
-        if (!soloHold) return;
-        const h = soloHold;
-        soloHold = null;
-        cancelAnimationFrame(h.raf);
-        const el = staffNoteEls[h.idx];
-        if (el) el.classList.remove('holding', 'hold-full');
-        paintNoteFill(h.idx, 0);
     }
 
     function markStaffNoteDone(index) {
@@ -1263,15 +1028,12 @@
         if (el) el.classList.add('done');
     }
 
-    // במקום גלילה: כשהתלמיד סיים את הדמויות שעל המסך, מופיעות הבאות.
-    // ההחלפה קורית רק בין תו לתו - אף פעם לא באמצע נגינה או החזקה.
     function updateStaffScroll() {
-        if (soloHold) return;
-        if (soloIdx < songNotes.length && !staffNoteEls[soloIdx]) buildStaff();
+        const cur = staffNoteEls[soloIdx];
+        if (cur) cur.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
     }
 
     soloBtn.addEventListener('click', () => {
-        cancelHold();
         soloMode = !soloMode;
         soloBtn.classList.toggle('active', soloMode);
         soloBtn.textContent = soloMode ? 'חזרה לתרגול הרגיל' : 'אני רוצה לנסות לבד';
@@ -1334,132 +1096,14 @@
         document.documentElement.style.setProperty('--black-w', blackW + 'px');
         document.documentElement.style.setProperty('--key-h', keyH + 'px');
         document.documentElement.style.setProperty('--lane-h', laneH + 'px');
-        // רצועת העיגולים היא התוכן המרכזי במצב "לנסות לבד", ולכן היא מקבלת
-        // גובה משלה ולא יורשת את הפס הצר של מסלול התווים הנופלים.
-        const staffH = Math.max(78, Math.min(116, availableH - keyH - 8));
-        document.documentElement.style.setProperty('--staff-h', staffH + 'px');
+        document.documentElement.style.setProperty('--staff-h', laneH + 'px');
     }
-    window.addEventListener('resize', () => {
-        sizeKeys();
-        // בנייה מחדש בזמן שאצבע מחזיקה תו מוחקת את העיגול שמתחתיה
-        if (soloMode && !soloHold) buildStaff();
-    });
+    window.addEventListener('resize', () => { sizeKeys(); if (soloMode) buildStaff(); });
     sizeKeys();
     window.addEventListener('load', sizeKeys);
     requestAnimationFrame(sizeKeys);
     setTimeout(sizeKeys, 400);
     setTimeout(sizeKeys, 1200);
-
-    // הניסוי נכנס ישר לחמשה. קודם המסך הראה את מסלול התווים הנופלים -
-    // מסך מת, בלי שיר ובלי כפתורים - עד שנגעו בו. עכשיו אין רגע כזה.
-    practiceHint.textContent = 'החזיקו את הקליד עד שהעיגול מתמלא 👇';
-    soloBtn.click();
-    // הארון עדיין לא נמדד בשלב הזה, אז בונים שוב כשהפריסה מתייצבת
-    [0, 300, 900].forEach(ms => setTimeout(() => { if (soloMode && !soloHold) buildStaff(); }, ms));
-    window.addEventListener('load', () => { if (soloMode && !soloHold) buildStaff(); });
-
-    // ===================== שורת אבחון זמנית =====================
-    // נוספה כדי לענות על שאלה אחת בלבד: כשהמסך גדל, מי גדל.
-    //   scale = ההגדלה של ספארי עצמו. 1.00 פירושו שלא היה זום כלל.
-    //   key   = רוחב הקליד שהקוד שלנו חישב.
-    // אם scale קופץ מעל 1 — זה הדפדפן. אם key קופץ ו-scale נשאר 1.00 —
-    // ההגדלה היא שלנו, מחישוב הפריסה, ולזום אין לזה שום קשר.
-    const dbg = document.createElement("div");
-    dbg.id = "dbg-bar";
-    document.body.appendChild(dbg);
-    let fingersNow = 0, fingersMax = 0, lastEvent = "start";
-    const keyJumps = [];
-    const readKeyW = () => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--white-w")) || 0);
-    let lastKeyW = readKeyW();
-    // רישום המגעים האחרונים. ברגע שההגדלה קורית הרישום קופא, כדי
-    // שאפשר יהיה לקרוא בדיוק מה קדם לה: כמה אצבעות, ובאיזה מרווח.
-    const touchLog = [];
-    let zoomTrigger = "";
-    document.addEventListener('touchstart', e => {
-        touchLog.push({ t: Date.now(), n: e.touches.length });
-        if (touchLog.length > 6) touchLog.shift();
-    }, { passive: true });
-    function checkZoom() {
-        const vv = window.visualViewport;
-        if (!vv || zoomTrigger || vv.scale <= 1.01) return;
-        const now = Date.now();
-        const seq = touchLog.map((x, i) => (i ? "+" + (x.t - touchLog[i - 1].t) + "ms " : "") + x.n + "f").join(" ");
-        const since = touchLog.length ? (now - touchLog[touchLog.length - 1].t) + "ms" : "-";
-        zoomTrigger = "x" + vv.scale.toFixed(2) + " after " + since + " | " + (seq || "no touches");
-    }
-    // נמדדים פעם אחת בטעינה, ומשמשים כנקודת ההשוואה.
-    const dpr0 = window.devicePixelRatio;
-    const keyW0 = readKeyW();
-    // הגדלת Aa של ספארי משנה את devicePixelRatio אבל אף פעם לא את
-    // visualViewport.scale. צביטה עושה בדיוק ההפך. זה מפריד ביניהן.
-    function verdictText() {
-        const vv = window.visualViewport;
-        if (vv && vv.scale > 1.01) return "צביטה של ספארי";
-        if (Math.abs(window.devicePixelRatio - dpr0) > 0.01) return "הגדלת Aa של ספארי";
-        if (readKeyW() !== keyW0) return "חישוב הפריסה שלנו";
-        return "תקין";
-    }
-    function paintDbg(ev) {
-        if (ev) lastEvent = ev;
-        const vv = window.visualViewport;
-        const kw = readKeyW();
-        checkZoom();
-        if (kw !== lastKeyW) {
-            keyJumps.push(lastKeyW + "->" + kw + " @" + lastEvent);
-            if (keyJumps.length > 3) keyJumps.shift();
-            lastKeyW = kw;
-        }
-        const v = verdictText();
-        const verd = document.createElement("span");
-        verd.id = "dbg-verdict";
-        if (v !== "תקין") verd.className = "bad";
-        // חותמת גרסה: הדרך היחידה לדעת בוודאות שלא רואים מטמון ישן
-        verd.textContent = "מצב: " + v + "   ·   BUILD 9 · no-blockers";
-        const big = document.createElement("span");
-        big.id = "dbg-big";
-        big.textContent = "SCALE " + (vv ? vv.scale.toFixed(2) : "-") + "  KEY " + kw + "/" + keyW0 +
-            "  DPR " + window.devicePixelRatio.toFixed(2) + "/" + dpr0.toFixed(2);
-        dbg.textContent = "";
-        dbg.appendChild(verd);
-        dbg.appendChild(big);
-        dbg.appendChild(document.createTextNode(
-            "win " + innerWidth + "x" + innerHeight +
-            "  vv " + (vv ? Math.round(vv.width) + "x" + Math.round(vv.height) : "-") +
-            "  pc " + Math.round(pianoContainer.clientWidth) +
-            "  fing " + fingersNow + "/" + fingersMax +
-            "\nlast: " + lastEvent +
-            (keyJumps.length ? "\njumps: " + keyJumps.join("  ") : "")));
-        if (zoomTrigger) {
-            const trg = document.createElement("span");
-            trg.id = "dbg-trigger";
-            trg.textContent = "TRIGGER " + zoomTrigger;
-            dbg.appendChild(trg);
-        }
-        placeDbg();
-    }
-
-    // הפס נצמד לחלון הנראה בפועל. בלי זה, ברגע שספארי מגדיל, תחתית
-    // העמוד יוצאת מהמסך והפס נעלם - בדיוק ברגע שצריך לקרוא אותו.
-    function placeDbg() {
-        const vv = window.visualViewport;
-        if (!vv) { dbg.style.left = "0px"; dbg.style.width = "100%"; dbg.style.top = (innerHeight - dbg.offsetHeight) + "px"; return; }
-        dbg.style.left = vv.offsetLeft + "px";
-        dbg.style.width = vv.width + "px";
-        dbg.style.top = (vv.offsetTop + vv.height - dbg.offsetHeight) + "px";
-    }
-    ["resize", "orientationchange"].forEach(t => window.addEventListener(t, () => paintDbg(t)));
-    if (window.visualViewport) {
-        ["resize", "scroll"].forEach(t => window.visualViewport.addEventListener(t, () => paintDbg("vv-" + t)));
-    }
-    document.addEventListener("touchstart", e => {
-        fingersNow = e.touches.length;
-        fingersMax = Math.max(fingersMax, fingersNow);
-        paintDbg("touchstart x" + fingersNow);
-    }, { passive: true });
-    document.addEventListener("touchend", e => { fingersNow = e.touches.length; paintDbg("touchend"); }, { passive: true });
-    setInterval(() => paintDbg(), 400);
-    paintDbg("start");
-    // =================== סוף שורת האבחון ===================
 
     setInterval(() => {
         // This loop drives the timed-practice due-highlight/songIdx off the
@@ -1482,6 +1126,25 @@
             songHit = false;
         }
     }, 100);
+</script>
+<div id="probe" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:rgba(255,255,255,.95);color:#000;font:13px/1.4 monospace;direction:ltr;padding:5px 7px;pointer-events:none"></div>
+<script>
+(function () {
+    var el = document.getElementById("probe");
+    function read() {
+        var vv = window.visualViewport;
+        var kw = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--white-w")) || 0);
+        if (vv) {
+            el.style.left = vv.offsetLeft + "px";
+            el.style.width = vv.width + "px";
+            el.style.bottom = "auto";
+            el.style.top = (vv.offsetTop + vv.height - el.offsetHeight) + "px";
+        }
+        el.textContent = "BUILD ORIG-18/8   SCALE " + (vv ? vv.scale.toFixed(2) : "-") + "   KEY " + kw;
+    }
+    setInterval(read, 400);
+    read();
+}());
 </script>
 </body>
 </html>
