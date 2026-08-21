@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+<title>שלוש הגנות להחזקה</title>
+<style>
+    :root { --teal: #6fd6c9; --gold: #e0a83f; --panel: #1a1a1a; --panel2: #232323; }
+    html, body {
+        margin: 0; padding: 0; background: #111; color: #fff;
+        font-family: Arial, sans-serif; -webkit-text-size-adjust: 100%;
+        -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+    }
+    .wrap { max-width: 560px; margin: 0 auto; padding: 0 0 50px; }
+    header { padding: 20px 16px 8px; }
+    header h1 { margin: 0 0 8px; font-size: 19px; }
+    header p { margin: 0; font-size: 14px; line-height: 1.65; color: #bbb; }
+
+    .card { margin: 16px 10px; background: var(--panel); border-radius: 16px; overflow: hidden; }
+    .card h2 { margin: 0; padding: 14px 16px 4px; font-size: 16.5px; color: var(--teal); }
+    .card .how { margin: 0; padding: 0 16px 10px; font-size: 13.5px; line-height: 1.65; color: #bbb; }
+    .stage { padding: 4px 10px 12px; }
+
+    .row { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; }
+    .pad {
+        position: relative; width: 78px; height: 78px; border-radius: 50%;
+        border: 3px solid #444; background: #2a2a2a; overflow: hidden; flex: 0 0 auto;
+        transition: border-color .18s ease, box-shadow .18s ease;
+        -webkit-touch-callout: none;
+    }
+    .pad.small { width: 60px; height: 60px; }
+    .pad img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-user-drag: none; }
+    .pad .water { position: absolute; inset: 0; pointer-events: none; }
+    .pad .water svg { width: 100%; height: 100%; display: block; }
+    .pad.next { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(224,168,63,.28); }
+    .pad.done { border-color: var(--teal); box-shadow: 0 0 10px 2px rgba(111,214,201,.55); }
+    .pad.tappable { cursor: pointer; }
+
+    .keys { display: flex; justify-content: center; }
+    .key {
+        position: relative; width: 76px; height: 120px; border-radius: 0 0 9px 9px;
+        background: #fff; border: 1px solid #000; overflow: hidden;
+        display: flex; align-items: flex-end; justify-content: center;
+        touch-action: none; -webkit-touch-callout: none;
+    }
+    .key img { width: 84%; margin-bottom: 6px; pointer-events: none; -webkit-user-drag: none; }
+    .key.lit { background: #ffe680; }
+    .key.off { opacity: .35; }
+
+    .say { text-align: center; font-size: 15px; min-height: 22px; padding: 8px 12px 2px; color: var(--teal); }
+    .say.warn { color: var(--gold); }
+    .again {
+        display: block; margin: 8px auto 0; padding: 8px 20px; font-size: 14px;
+        background: var(--panel2); color: #fff; border: 1px solid #3a3a3a;
+        border-radius: 20px; touch-action: manipulation;
+    }
+    .scale {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 999;
+        background: rgba(255,255,255,.95); color: #000;
+        font: 15px/1.35 monospace; direction: ltr; text-align: center;
+        padding: 6px; pointer-events: none; font-weight: bold;
+    }
+    .scale.zoomed { background: #ffd6d6; }
+    footer { padding: 16px 16px 70px; color: #777; font-size: 12.5px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+    <h1>אותה החזקה, שלוש הגנות</h1>
+    <p>
+        כולן שומרות בדיוק על מה שבחרת: אצבע על הקליד, מים שעולים, צלצול כשמלא.
+        ההבדל הוא רק במה שקורה <b>מתחת לאצבע</b>.
+        נגני בכל אחת וראי בפס הלבן למטה אם <b>SCALE</b> נשאר 1.00.
+    </p>
+</header>
+
+<div class="card" id="a">
+    <h2>א · בולעים את הנגיעה</h2>
+    <p class="how">
+        ברגע שהאצבע נוגעת בקליד, העמוד אומר למערכת במפורש "המגע הזה שלי".
+        זו השיטה היחידה שיכולה לעצור מחוות מערכת — ולא ניסיתי אותה היום אף פעם.
+    </p>
+    <div class="stage">
+        <div class="row" data-pads></div>
+        <div class="keys" data-keys></div>
+        <div class="say" data-say></div>
+        <button class="again" data-again>מהתחלה</button>
+    </div>
+</div>
+
+<div class="card" id="b">
+    <h2>ב · מחזיקים על הדמות</h2>
+    <p class="how">
+        הקליד כבוי כאן. מחזיקים ישירות על העיגול של הדמות —
+        וכל תו נמצא <b>במקום אחר על המסך</b>, כך שהאצבע לא נחה פעמיים באותה נקודה.
+    </p>
+    <div class="stage">
+        <div class="row" data-pads></div>
+        <div class="keys" data-keys></div>
+        <div class="say" data-say></div>
+        <button class="again" data-again>מהתחלה</button>
+    </div>
+</div>
+
+<div class="card" id="c">
+    <h2>ג · אותו משך, פחות זמן על המסך</h2>
+    <p class="how">
+        המים ממשיכים לעלות עד הסוף והצליל נמשך במלואו — אבל ההחזקה
+        <b>נחשבת מלאה כבר בשני שליש</b>. אפשר להרים את האצבע מוקדם יותר
+        והתו נסגר. הרגשת המשך נשמרת, זמן החשיפה מתקצר.
+    </p>
+    <div class="stage">
+        <div class="row" data-pads></div>
+        <div class="keys" data-keys></div>
+        <div class="say" data-say></div>
+        <button class="again" data-again>מהתחלה</button>
+    </div>
+</div>
+
+<footer>
+    עמוד תצוגה בלבד. הצלילים מסונתזים ולא דגימות הפסנתר, כדי שייטען מהר.
+    אם אחת נקייה — היא נכנסת לשיעור עם הצליל האמיתי.
+</footer>
+</div>
+
+<div class="scale" id="scale">SCALE 1.00</div>
+
+<script>
+// ---------------------------------------------------------------- audio
+var ac = null;
+function ctx() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); return ac; }
+function voice(freq) {
+    var a = ctx(), t0 = a.currentTime + 0.01, master = a.createGain();
+    master.gain.setValueAtTime(0, t0);
+    master.gain.linearRampToValueAtTime(0.26, t0 + 0.04);
+    master.connect(a.destination);
+    var oscs = [];
+    [[1, 1], [2, 0.4], [3, 0.16], [4, 0.09]].forEach(function (p) {
+        var o = a.createOscillator(), g = a.createGain();
+        o.type = 'sine'; o.frequency.value = freq * p[0]; g.gain.value = p[1];
+        o.connect(g).connect(master); o.start(t0); oscs.push(o);
+    });
+    return { stop: function () {
+        var n = a.currentTime;
+        master.gain.cancelScheduledValues(n);
+        master.gain.setValueAtTime(master.gain.value, n);
+        master.gain.linearRampToValueAtTime(0.0001, n + 0.08);
+        oscs.forEach(function (o) { try { o.stop(n + 0.14); } catch (e) {} });
+    } };
+}
+function ping(f, d) {
+    var a = ctx(), t0 = a.currentTime + 0.01, o = a.createOscillator(), g = a.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.16, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + d + 0.05);
+}
+
+// ---------------------------------------------------------------- water
+var TOP = "M-100,0 q25,-6 50,0 t50,0 t50,0 t50,0 t50,0 t50,0";
+var FULL = TOP + " V115 H-100 Z";
+function waterSvg() {
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+        '<path class="wv" fill="#0F8C82" fill-opacity="0.72" d="' + FULL + '" transform="translate(0,100)"></path>' +
+        '<path class="wv" fill="none" stroke="#BFF6EE" stroke-width="6" stroke-opacity="0.95" d="' + TOP + '" transform="translate(0,100)"></path>' +
+        '</svg>';
+}
+function setWater(el, p) {
+    var t = 'translate(' + (Math.sin(Date.now() / 240) * 6) + ',' + ((1 - p) * 100) + ')';
+    el.querySelectorAll('.wv').forEach(function (w) { w.setAttribute('transform', t); });
+}
+
+// ---------------------------------------------------------------- shared
+var PHRASE = [
+    { img: 'מי.png', freq: 329.63, dur: 0.5 },
+    { img: 'מי.png', freq: 329.63, dur: 0.5 },
+    { img: 'מי.png', freq: 329.63, dur: 1.1 }
+];
+var LONG = 0.8;
+
+function build(card, opts) {
+    var padRow = card.querySelector('[data-pads]'), keyRow = card.querySelector('[data-keys]');
+    padRow.innerHTML = ''; keyRow.innerHTML = '';
+    var pads = PHRASE.map(function (n) {
+        var d = document.createElement('div');
+        d.className = 'pad' + (n.dur >= LONG ? '' : ' small') + (opts.padsPlay ? ' tappable' : '');
+        d.innerHTML = '<img src="' + n.img + '" alt="" draggable="false"><span class="water">' + waterSvg() + '</span>';
+        padRow.appendChild(d);
+        return d;
+    });
+    var key = document.createElement('div');
+    key.className = 'key' + (opts.padsPlay ? ' off' : '');
+    key.innerHTML = '<img src="מי.png" alt="" draggable="false">';
+    keyRow.appendChild(key);
+    return { pads: pads, key: key, say: card.querySelector('[data-say]') };
+}
+function mark(ui, idx) {
+    ui.pads.forEach(function (p, i) {
+        p.classList.toggle('done', i < idx);
+        p.classList.toggle('next', i === idx);
+        setWater(p, i < idx ? 1 : 0);
+    });
+}
+function drain(pad, from) {
+    var t0 = Date.now();
+    (function step() {
+        var q = Math.min(1, (Date.now() - t0) / 260);
+        setWater(pad, from * (1 - q));
+        if (q < 1) requestAnimationFrame(step);
+    }());
+}
+
+// A generic hold engine. `enough` is the share of the note that already counts
+// as a full hold, and `target(i)` says which element the finger rests on.
+function holdGame(card, opts) {
+    var ui = build(card, opts), idx = 0, hold = null;
+    function reset() {
+        if (hold) { cancelAnimationFrame(hold.raf); hold.v.stop(); hold = null; }
+        idx = 0; mark(ui, 0); ui.key.classList.remove('lit');
+        ui.say.textContent = opts.padsPlay ? 'החזיקי על הדמות' : 'החזיקי על הקליד';
+        ui.say.className = 'say';
+    }
+    card.querySelector('[data-again]').addEventListener('click', reset);
+
+    function down(e) {
+        if (e && e.cancelable && opts.swallow) e.preventDefault();
+        if (idx >= PHRASE.length || hold) return;
+        var n = PHRASE[idx];
+        if (!opts.padsPlay) ui.key.classList.add('lit');
+        hold = { t0: Date.now(), need: n.dur * 1000, v: voice(n.freq), full: false, idx: idx, long: n.dur >= LONG };
+        if (!hold.long) { finish(); return; }
+        ui.say.textContent = 'עוד רגע…'; ui.say.className = 'say';
+        (function tick() {
+            if (!hold) return;
+            var p = Math.min(1, (Date.now() - hold.t0) / hold.need);
+            setWater(ui.pads[hold.idx], p);
+            if (p >= opts.enough && !hold.full) { hold.full = true; ping(1318, 0.42); }
+            hold.raf = requestAnimationFrame(tick);
+        }());
+    }
+    function finish() {
+        var h = hold; hold = null;
+        if (h.raf) cancelAnimationFrame(h.raf);
+        h.v.stop(); ui.key.classList.remove('lit');
+        setWater(ui.pads[h.idx], 1);
+        idx++; mark(ui, idx);
+        ui.say.textContent = idx >= PHRASE.length ? 'יפה! זה הקצב.' : 'עוד אחד';
+        ui.say.className = 'say';
+    }
+    function up(e) {
+        if (e && e.cancelable && opts.swallow) e.preventDefault();
+        if (!hold) return;
+        var p = (Date.now() - hold.t0) / hold.need;
+        if (!hold.long || p >= opts.enough) { finish(); return; }
+        var h = hold; hold = null;
+        cancelAnimationFrame(h.raf); h.v.stop(); ui.key.classList.remove('lit');
+        drain(ui.pads[h.idx], p);
+        ui.say.textContent = 'מוקדם מדי — אפשר שוב'; ui.say.className = 'say warn';
+    }
+
+    function bind(el) {
+        if (opts.swallow) {
+            // touchstart עם preventDefault הוא הדבר היחיד שיכול לבלוע מחוות
+            // מערכת. משתמשים באירועי מגע ישירות ולא ב-pointer, כי רק להם יש
+            // ברירת מחדל שאפשר לבטל.
+            el.addEventListener('touchstart', down, { passive: false });
+            el.addEventListener('touchend', up, { passive: false });
+            el.addEventListener('touchcancel', up, { passive: false });
+            el.addEventListener('mousedown', down);
+            el.addEventListener('mouseup', up);
+        } else {
+            el.addEventListener('pointerdown', function (e) { e.preventDefault(); down(e); });
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) { el.addEventListener(t, up); });
+        }
+    }
+    if (opts.padsPlay) ui.pads.forEach(bind); else bind(ui.key);
+    reset();
+}
+
+holdGame(document.getElementById('a'), { swallow: true,  padsPlay: false, enough: 1.0 });
+holdGame(document.getElementById('b'), { swallow: false, padsPlay: true,  enough: 1.0 });
+holdGame(document.getElementById('c'), { swallow: false, padsPlay: false, enough: 0.66 });
+
+// ---------------------------------------------------------------- readout
+(function () {
+    var el = document.getElementById('scale');
+    setInterval(function () {
+        var vv = window.visualViewport;
+        var s = vv ? vv.scale : 1;
+        if (vv) {
+            el.style.left = vv.offsetLeft + 'px';
+            el.style.width = vv.width + 'px';
+            el.style.bottom = 'auto';
+            el.style.top = (vv.offsetTop + vv.height - el.offsetHeight) + 'px';
+        }
+        el.textContent = 'SCALE ' + s.toFixed(2) + (s > 1.01 ? '  ← הגדלה!' : '');
+        el.classList.toggle('zoomed', s > 1.01);
+    }, 300);
+}());
+</script>
+</body>
+</html>
