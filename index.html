@@ -481,13 +481,18 @@
            המרכז ולא את השוליים, ולכן זה נשאר גלוי לאורך כל ההחזקה. */
         .staff-note-avatar { z-index: 1; }
         .hold-ring {
-            position: absolute; inset: -8px;
+            position: absolute; inset: -5px;
             border-radius: 50%; z-index: 0; pointer-events: none;
-            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), rgba(255,255,255,0.10) 0deg);
+            /* בלי רקע חיוור מתחת: אחרת נוצר קצה ישר בנקודה שבה הצביעה
+               מתחילה, והוא נראה כמו פינה משולשת. כך רואים רק את הקשת. */
+            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), transparent 0deg);
+            /* הזוהר עוקב אחרי הצורה בפועל, כלומר אחרי הקשת בלבד ולא אחרי
+               העיגול כולו, וזה מה שנותן את מראה הלד. */
+            filter: drop-shadow(0 0 5px rgba(111,214,201,0.95));
             opacity: 0; transition: opacity .18s ease;
         }
         .staff-note.holding .hold-ring { opacity: 1; }
-        .staff-note.hold-full .hold-ring { box-shadow: 0 0 14px 4px rgba(111,214,201,0.85); }
+        .staff-note.hold-full .hold-ring { filter: drop-shadow(0 0 9px rgba(111,214,201,1)); }
         /* ================= סוף התוספת ================= */
     </style>
 <style>
