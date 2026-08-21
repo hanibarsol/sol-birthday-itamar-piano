@@ -475,21 +475,19 @@
         }
         /* טבעת המילוי יושבת מחוץ לעיגול, ולכן היא נשארת גלויה גם כשאצבע
            מכסה את מרכזו. המים בפנים למי שרואה אותם, הטבעת תמיד. */
-        /* SVG הוא רכיב מוחלף, כמו תמונה: עם inset בלבד הוא לוקח את הגודל
-           המובנה שלו במקום להתפרס, ונוחת במקום הלא נכון. גודל מפורש. */
+        /* קו המתאר של הדמות נדלק בהדרגה. זה לא רכיב חיצוני שצריך למקם
+           מול העיגול אלא עיגול שיושב מתחתיו וגדול ממנו במעט, כך שנראה
+           ממנו רק הטבעת - כלומר קו המתאר הקיים עצמו. האצבע מכסה את
+           המרכז ולא את השוליים, ולכן זה נשאר גלוי לאורך כל ההחזקה. */
+        .staff-note-avatar { z-index: 1; }
         .hold-ring {
-            position: absolute;
-            left: -7px; top: -7px;
-            width: calc(100% + 14px); height: calc(100% + 14px);
-            z-index: 3; pointer-events: none;
-            transform: rotate(-90deg); transform-origin: 50% 50%; overflow: visible;
+            position: absolute; inset: -8px;
+            border-radius: 50%; z-index: 0; pointer-events: none;
+            background: conic-gradient(var(--teal) calc(var(--p, 0) * 360deg), rgba(255,255,255,0.10) 0deg);
+            opacity: 0; transition: opacity .18s ease;
         }
-        .hold-ring circle {
-            fill: none; stroke: var(--gold); stroke-width: 7; stroke-linecap: round;
-            opacity: 0; transition: opacity .15s ease;
-        }
-        .staff-note.holding .hold-ring circle { opacity: 1; }
-        .staff-note.hold-full .hold-ring circle { stroke: var(--teal); }
+        .staff-note.holding .hold-ring { opacity: 1; }
+        .staff-note.hold-full .hold-ring { box-shadow: 0 0 14px 4px rgba(111,214,201,0.85); }
         /* ================= סוף התוספת ================= */
     </style>
 <style>
@@ -1049,7 +1047,6 @@
     // מצב התרגול הרגיל ממשיך לעבוד על מסלול התווים הנופלים כרגיל.
     const NOTE_HOLD_D = 84;  // דמות של תו שמחזיקים
     const NOTE_TAP_D  = 64;  // דמות של תו שנוגעים בו
-    const RING_LEN = 289.03; // היקף המעגל בטבעת, 2 פאי כפול 46
 
     function buildStaff() {
         staffInner.innerHTML = '';
@@ -1084,10 +1081,8 @@
             staffWaterEls.push(water);
             note.appendChild(avatar);
             // הטבעת מחוץ לעיגול, שם האצבע לא מכסה
-            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            ring.setAttribute('class', 'hold-ring');
-            ring.setAttribute('viewBox', '0 0 100 100');
-            ring.innerHTML = '<circle cx="50" cy="50" r="46" stroke-dasharray="' + RING_LEN + '" stroke-dashoffset="' + RING_LEN + '"></circle>';
+            const ring = document.createElement('div');
+            ring.className = 'hold-ring';
             note.appendChild(ring);
             ringEls.push(ring);
 
@@ -1133,7 +1128,7 @@
     function paintNoteFill(idx, p) {
         setWater(staffWaterEls[idx], p);
         const r = ringEls[idx];
-        if (r) { const c = r.querySelector('circle'); if (c) c.style.strokeDashoffset = (RING_LEN * (1 - p)).toFixed(1); }
+        if (r) r.style.setProperty('--p', p.toFixed(3));
     }
 
     let soloHold = null;
